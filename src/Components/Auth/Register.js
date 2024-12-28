@@ -57,6 +57,7 @@ const RegisterPage = () => {
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="w-full max-w-xs">
         <form className="inputFields">
+          <h2 className="pb-4">Register</h2>
           <div className="mb-4">
             <label className="label" htmlFor="username">
               Username

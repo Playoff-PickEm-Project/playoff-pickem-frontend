@@ -1,21 +1,20 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-// Page for the login screen.
-const LoginPage = () => {
+const LoginPage = ({ onLoginSuccess }) => {
   const [usernameValue, setUsername] = useState("");
   const [passwordValue, setPassword] = useState("");
 
-  // Function to handle a login request. I forget why this is the format but I think using async is more efficient.
-  const handleLogin = () => {
+  // Function to handle a login request
+  const handleLogin = (event) => {
+    event.preventDefault();  // Prevent default form submission behavior
+
     async function login() {
-      // Store the data to send to the backend.
       const data = {
         username: usernameValue,
-        password: passwordValue
-      }
+        password: passwordValue,
+      };
 
-      // Try-catch to make a request to the backend with the URL, type of method, JSON content, and the data.
       try {
         const response = await fetch("http://127.0.0.1:5000/login", {
           method: "POST",
@@ -24,60 +23,72 @@ const LoginPage = () => {
           },
           body: JSON.stringify(data),
         });
-        
-        // If no error was generated in the backend, then the login was successful.
+
         if (response.ok) {
-          alert("login successful i believe?");
+          alert("Login successful!");  // Success popup
+          onLoginSuccess();  // Trigger success handler to update state in App.js
+        } else {
+          alert("Wrong username or password.");
         }
-        else {        // If an error was generated, it should be because invalid credentials were entered.
-          alert("wrong username or password");
-        }
-      }
-      catch (error) {     // If this part of the code is reached, there's a problem with the endpoint (first guess is CORS)
-        console.log("error with endpoint", error);
+      } catch (error) {
+        console.log("Error with endpoint", error);
       }
     }
 
-    // Call the login function.
     login();
   };
 
   return (
-    <div className="header">
-      <h2 className="text">Log In</h2>
-
-      <div className="inputFields">
-        <div className="input">
-          <div className="label">username</div>
-          <input 
-            type="text"
-            id="username"
-            value={usernameValue}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-xs">
+        <form className="inputFields">
+          <h2 className="pb-4">Log-in</h2>
+          <div className="mb-4">
+            <label className="label" htmlFor="username">
+              Username
+            </label>
+            <input
+              className="inputForm"
+              type="text"
+              id="username"
+              value={usernameValue}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
             />
-        </div>
-        <div className="input">
-          <div className="label">password</div>
-          <input
-            type="password"
-            id="password"
-            value={passwordValue}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"/>
-        </div>
-
-        {usernameValue !== "" && passwordValue !== "" && <button onClick={handleLogin}>
-          Login
-        </button>}
-
-        <div style={{marginTop: "20px"}}>
-          <p>Don't have an account? Register!</p>
-
-          <button>
-            <Link to="/register">Register</Link>
-          </button>
-        </div>
+          </div>
+          <div className="mb-6">
+            <label className="label" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="inputForm"
+              type="password"
+              id="password"
+              value={passwordValue}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+            />
+          </div>
+          <div className="flex items-center justify-center">
+            {usernameValue !== "" && passwordValue !== "" && (
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={handleLogin}  // Pass the event to handleLogin
+              >
+                Login
+              </button>
+            )}
+          </div>
+          <p className="text-center text-gray-500 text-xs mt-4">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className="text-blue-500 hover:text-blue-800 font-bold text-sm"
+            >
+              Register
+            </Link>
+          </p>
+        </form>
       </div>
     </div>
   );
