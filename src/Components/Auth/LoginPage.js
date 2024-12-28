@@ -44,12 +44,11 @@ const LoginPage = () => {
 
   return (
     <div className="header">
-      <h1>Playoff Pick'em League</h1>
       <h2 className="text">Log In</h2>
 
       <div className="inputFields">
         <div className="input">
-          <div className="text">username</div>
+          <div className="label">username</div>
           <input 
             type="text"
             id="username"
@@ -59,7 +58,7 @@ const LoginPage = () => {
             />
         </div>
         <div className="input">
-          <div className="text">password</div>
+          <div className="label">password</div>
           <input
             type="password"
             id="password"
