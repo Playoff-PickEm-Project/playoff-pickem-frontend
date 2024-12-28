@@ -12,3 +12,11 @@ export const FakeData = [
         score: 3
     }
 ]
+
+export const FakeLeagueData = [
+    {
+        leaguename: "NGL playoff pick em league",
+        members: 6,
+        joincode: "123456789"
+    }
+]
