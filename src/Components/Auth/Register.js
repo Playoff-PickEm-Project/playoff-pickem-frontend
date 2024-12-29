@@ -18,7 +18,9 @@ const RegisterPage = () => {
   };
 
   // Function to handle a register request.
-  const handleRegister = () => {
+  const handleRegister = (event) => {
+    event.preventDefault();  // Prevent default form submission behavior
+
     async function register() {
       // Store the data to send to the backend.
       const data = {
@@ -94,7 +96,7 @@ const RegisterPage = () => {
             {usernameValue !== "" && passwordValue !== "" && (
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                onClick={() => alert("Registered!")}
+                onClick={handleRegister}
               >
                 Register
               </button>
