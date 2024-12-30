@@ -6,18 +6,21 @@ const LeagueCard = ({ league }) => {
     <div className="p-4 max-w-sm">
       <div className="flex rounded-lg h-full dark:bg-gray-800 bg-teal-400 p-8 flex-col">
         <div className="flex items-center mb-3">
-          <h2 className="text-white dark:text-white text-lg font-medium">{league.leaguename}</h2>
+          <h2 className="text-white dark:text-white text-lg font-medium">{league.league_name}</h2>
         </div>
         <div className="flex flex-col justify-between flex-grow">
           <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            Members: {league.members}
+            Members: 
+            {league.league_players.map((player, index) => (
+               <li key={index}>{player.name}</li>
+            ))}
           </p>
           <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            Join Code: <span className="font-semibold">{league.joincode}</span>
+            Join Code: <span className="font-semibold">{league.join_code}</span>
           </p>
           {/* Use Link component for navigation with league name */}
           <Link
-            to={`/league-home/${league.leaguename}`}  // Pass the league's name to the path
+            to={`/league-home/${league.league_name}`}  // Pass the league's name to the path
             className="mt-3 text-black dark:text-white hover:text-blue-600 inline-flex items-center"
           >
             View League
