@@ -26,7 +26,8 @@ const LoginPage = ({ onLoginSuccess }) => {
 
         if (response.ok) {
           alert("Login successful!");  // Success popup
-          onLoginSuccess();  // Trigger success handler to update state in App.js
+          localStorage.setItem('username', usernameValue)
+          onLoginSuccess(usernameValue);  // Trigger success handler to update state in App.js
         } else {
           alert("Wrong username or password.");
         }
