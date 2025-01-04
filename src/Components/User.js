@@ -6,7 +6,7 @@ const User = ({ data }) => {
       id="user"
       className="w-1/2 bg-white shadow-md rounded p-4 flex flex-col gap-2"
     >
-      {data.map((value, index) => (
+      {data.map((player, index) => (
         <div
           key={index}
           className="flex justify-between items-center text-lg font-medium"
@@ -15,11 +15,11 @@ const User = ({ data }) => {
           <div className="flex items-center">
             {/* Incrementing rank with each iteration */}
             <span className="mr-4 text-gray-500">{index + 1}.</span>
-            <h3>{value.username}</h3>
+            <h3>{player.name}</h3>
           </div>
           {/* Score Section */}
           <div>
-            <p className="text-blue-500 font-semibold">{value.score}</p>
+            <p className="text-blue-500 font-semibold">{player.points}</p>
           </div>
         </div>
       ))}
