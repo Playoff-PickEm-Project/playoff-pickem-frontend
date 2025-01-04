@@ -5,7 +5,53 @@ const GameFormBuilder = () => {
   const [formName, setFormName] = useState("");
   const [questions, setQuestions] = useState([]);
   const { formId } = useParams();
+  const { leagueName } = useParams();
   const navigate = useNavigate();
+
+  const handleCreateGame = () => {
+    async function createGame() {
+      const date = new Date();
+      date.toISOString();
+
+      const data = {
+        leagueName: leagueName,
+        gameName: "test game",
+        date: date,
+        winnerLoserQuestions: [{
+          question: "Ravens or Chiefs (favorite is Ravens)",
+          favoritePoints: 3,
+          underdogPoints: 5
+        },],
+        overUnderQuestions: [{
+          question: "Lamar Jackson over/under 244.5 passing yards",
+          overPoints: 5,
+          underPoints: 5
+        },]
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/create_game", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        })
+
+        if (response.ok) {
+          alert("Game created successfully I think?");
+        }
+        else {
+          alert("something went wrong");
+        }
+      }
+      catch (error) {
+        alert("endpoint wasnt reached i think");
+      }
+    }
+
+    createGame();
+  }
 
   useEffect(() => {
     const getFormData = () => {
@@ -24,6 +70,10 @@ const GameFormBuilder = () => {
             {
               label: "Over/Under",
               field_type: "over_under",
+              choices: [
+                { choice_text: "Over", points: 5},
+                { choice_text: "Under", points: 5},
+              ]
             },
             {
               label: "Custom Radio",
@@ -324,6 +374,11 @@ const GameFormBuilder = () => {
           </button>
         </div>
       </form>
+
+
+      <button onClick={handleCreateGame}>
+        Testing create game with hardcoded stuff!
+      </button>
     </div>
   );
 };

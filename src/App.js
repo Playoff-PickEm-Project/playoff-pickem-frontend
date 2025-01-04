@@ -11,6 +11,7 @@ import LeagueList from './Components/HomeView/LeagueList';
 import LeagueHome from './Components/LeagueHome';
 import CreateLeague from './Components/LeagueCreation/LeagueCreation';
 import JoinLeague from './Components/LeagueCreation/LeagueJoin';
+import ViewGameForms from './Components/ViewGameForms';
 
 export const getUsername = () => {
   return localStorage.getItem('username')
@@ -61,6 +62,7 @@ export default function App() {
         
         {/* LeagueHome page using leagueName */}
         <Route path="/league-home/:leagueName" element={authorized ? <LeagueHome /> : <Navigate to="/" />} />
+        <Route path="/league-home/:leagueName/viewGames" element={authorized ? <ViewGameForms /> : <Navigate to="/" />} />
       </Routes>
     </div>
   );
