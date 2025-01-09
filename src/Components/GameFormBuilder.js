@@ -4,29 +4,62 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 const GameFormBuilder = () => {
   const [formName, setFormName] = useState("");
   const [questions, setQuestions] = useState([]);
+  const [gameStartDate, setGameStartDate] = useState(new Date().toISOString());
   const { formId } = useParams();
   const { leagueName } = useParams();
   const navigate = useNavigate();
 
   const handleCreateGame = () => {
     async function createGame() {
-      const date = new Date();
-      date.toISOString();
+      if (!(gameStartDate instanceof Date)) {
+        alert("Select a date.")
+        return;
+      }
+      
+      const now = new Date();
+      if (gameStartDate < now) {
+        alert("Please choose a date in the future.");
+        return;
+      }
+
+      const overUnderQuestions = [];
+      const winnerLoserQuestions = [];
+
+      questions.forEach(item => {
+        if (item.field_type === 'select_winner') {
+          // Sort choices by points (lower points = favorite, higher points = underdog)
+          const sortedChoices = item.choices.sort((a, b) => a.points - b.points);
+          
+          winnerLoserQuestions.push({
+            question: `${item.label} (favorite is ${sortedChoices[0].choice_text})`,
+            favoritePoints: sortedChoices[0].points,
+            underdogPoints: sortedChoices[1].points,
+            favoriteTeam: sortedChoices[0].choice_text,
+            underdogTeam: sortedChoices[1].choice_text
+          });
+        }
+      
+        if (item.field_type === 'over_under') {
+          const overChoice = item.choices.find(choice => choice.choice_text.toLowerCase() === 'over');
+          const underChoice = item.choices.find(choice => choice.choice_text.toLowerCase() === 'under');
+      
+          overUnderQuestions.push({
+            question: item.label,
+            overPoints: overChoice.points,
+            underPoints: underChoice.points
+          });
+        }
+      });
+
+      console.log(overUnderQuestions);
+      console.log(winnerLoserQuestions);
 
       const data = {
         leagueName: leagueName,
-        gameName: "test game",
-        date: date,
-        winnerLoserQuestions: [{
-          question: "Ravens or Chiefs (favorite is Ravens)",
-          favoritePoints: 3,
-          underdogPoints: 5
-        },],
-        overUnderQuestions: [{
-          question: "Lamar Jackson over/under 244.5 passing yards",
-          overPoints: 5,
-          underPoints: 5
-        },]
+        gameName: formName,
+        date: gameStartDate.toISOString(),
+        winnerLoserQuestions: winnerLoserQuestions,
+        overUnderQuestions: overUnderQuestions
       }
 
       try {
@@ -52,6 +85,10 @@ const GameFormBuilder = () => {
 
     createGame();
   }
+
+  useEffect(() => {
+    console.log(questions)
+  }, [questions])
 
   useEffect(() => {
     const getFormData = () => {
@@ -156,13 +193,30 @@ const GameFormBuilder = () => {
     setQuestions(updatedQuestions);
   };
 
+  const handleDateChange = (e) => {
+    const selectedDate = new Date(e.target.value);
+    setGameStartDate(selectedDate); // Convert back to ISO string if needed
+  };
+
+  // Modify to ensure correct format and use local time
+  function getLocalDateString(date) {
+    const localDate = new Date(date);
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const hours = String(localDate.getHours()).padStart(2, '0');
+    const minutes = String(localDate.getMinutes()).padStart(2, '0');
+    
+    // Format in YYYY-MM-DDTHH:mm
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = {
       name: formName,
       questions: questions,
     };
-    console.log(data);
 
     if (formId) {
       console.log("Form Updated Successfully");
@@ -186,7 +240,7 @@ const GameFormBuilder = () => {
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleCreateGame}>
         <div className="mb-4">
           <label htmlFor="formName" className="block text-sm font-medium text-gray-700">
             Form Name
@@ -199,6 +253,20 @@ const GameFormBuilder = () => {
             placeholder="Enter form name"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="gameStartDateTime" className="block text-sm font-medium text-gray-700">
+            Game Start Date & Time
+          </label>
+          <input
+            type="datetime-local"
+            id="gameStartDateTime"
+            name="gameStartDateTime"
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={getLocalDateString(gameStartDate)}
+            onChange={handleDateChange}
           />
         </div>
 
@@ -353,7 +421,33 @@ const GameFormBuilder = () => {
                 </div>
               )}
 
-              {question.field_type === "over_under"}
+              {question.field_type === "over_under" && (
+                <div>
+                  <h4 className="font-medium text-gray-700">Options</h4>
+                  <ul className="space-y-2">
+                    {question.choices.map((option, optionIndex) => (
+                      <li key={optionIndex} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          name="option"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                          value={option.choice_text}
+                          onChange={(e) => handleOptionChange(e, questionIndex, optionIndex)}
+                        />
+                        <input
+                          type="number"
+                          name="points"
+                          value={option.points}
+                          onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
+                          className="w-24 px-4 py-2 border border-gray-300 rounded-md"
+                          min="0"
+                          step="0.5" // Allows half-point values
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -374,11 +468,6 @@ const GameFormBuilder = () => {
           </button>
         </div>
       </form>
-
-
-      <button onClick={handleCreateGame}>
-        Testing create game with hardcoded stuff!
-      </button>
     </div>
   );
 };
