@@ -1,5 +1,5 @@
 import react, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getUsername } from "../App";
 
 const ViewGameForms = () => {
@@ -7,8 +7,76 @@ const ViewGameForms = () => {
     const username = getUsername();
     const [gameForms, setGameForms] = useState([]);
     const [userChoices, setUserChoices] = useState({});
+    const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({});
+    const [overUnderAnswers, setOverUnderAnswers] = useState({})
+    const navigate = useNavigate();
 
-    const handleWinnerLoserProp = ( prop_id, answer ) => {
+    useEffect(() => {
+        function getWinnerLoserAnswers() {
+            fetch(`http://127.0.0.1:5000/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // Parse the JSON body
+            }).then((data) => {
+                setWinnerLoserAnswers(data); // Use the parsed JSON data
+                console.log(data);
+            }).catch((error) => {
+                console.error(error); // Log the error
+                alert("Something went wrong");
+            });
+        }    
+
+        function getOverUnderAnswers() {
+            fetch(`http://127.0.0.1:5000/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }).then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // Parse the JSON body
+            }).then((data) => {
+                setOverUnderAnswers(data); // Use the parsed JSON data
+            }).catch((error) => {
+                console.error(error); // Log the error
+                alert("Something went wrong");
+            });
+        }
+
+        getWinnerLoserAnswers();
+
+        getOverUnderAnswers();
+    }, [])
+
+    useEffect(() => {
+        if (Object.keys(winnerLoserAnswers).length > 0 || Object.keys(overUnderAnswers).length > 0) {
+            const updatedChoices = {};
+    
+            // Populate winner/loser answers
+            for (const [propId, team] of Object.entries(winnerLoserAnswers)) {
+                updatedChoices[propId] = { team }; // Save the team choice for each propId
+            }
+    
+            // Populate over/under answers
+            for (const [propId, choice] of Object.entries(overUnderAnswers)) {
+                updatedChoices[propId] = { ...updatedChoices[propId], choice }; // Save the over/under choice
+            }
+    
+            console.log("Updated Choices:", updatedChoices);
+            setUserChoices(updatedChoices);
+        }
+    }, [winnerLoserAnswers, overUnderAnswers]);
+    
+    // NEED TO UPDATE SO THAT CANNOT ANSWER IF DATE HAS PASSED
+    const handleWinnerLoserProp = (prop_id, answer) => {
         async function saveAnswer() {
             const data = {
                 leagueName: leagueName,
@@ -41,7 +109,7 @@ const ViewGameForms = () => {
         saveAnswer();
     }
 
-    const handleOverUnderProp = ( prop_id, answer ) => {
+    const handleOverUnderProp = (prop_id, answer) => {
         async function saveAnswer() {
             const data = {
                 leagueName: leagueName,
@@ -101,17 +169,19 @@ const ViewGameForms = () => {
         viewGames();
     }, [userChoices])
 
-    const handleChoiceChange = (gameId, propId, choiceType, value) => {
-        setUserChoices((prevChoices) => ({
-            ...prevChoices,
-            [gameId]: {
-                ...prevChoices[gameId],
-                [propId]: {
-                    ...prevChoices[gameId]?.[propId],
-                    [choiceType]: value, // Store the selected choice (either team or over/under)
-                },
+    // Need to retrieve users saved answers.
+    const handleChoiceChange = (propId, key, value) => {
+        setUserChoices((prev) => ({
+            ...prev,
+            [propId]: {
+                ...prev[propId],
+                [key]: value,
             },
         }));
+    };
+
+    const handleNavigation = (gameId) => {
+        navigate(`/league-home/${leagueName}/setCorrectAnswers/${gameId}`);
     };
 
     return (
@@ -134,10 +204,10 @@ const ViewGameForms = () => {
                                             type="radio"
                                             name={`game_${game.id}_winner_${index}`}
                                             value={prop.favorite_team}
-                                            onChange={() => handleChoiceChange(game.id, prop.id, 'team', prop.favorite_team)}
-                                            checked={userChoices[game.id]?.[prop.id]?.team === prop.favorite_team}
+                                            onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
+                                            checked={userChoices[prop.prop_id]?.team === prop.favorite_team}
                                         />
-                                        {prop.favorite_team}
+                                        {prop.favorite_team} ({prop.favorite_points})
                                     </label>
                                 </div>
                                 <div>
@@ -146,14 +216,14 @@ const ViewGameForms = () => {
                                             type="radio"
                                             name={`game_${game.id}_winner_${index}`}
                                             value={prop.underdog_team}
-                                            onChange={() => handleChoiceChange(game.id, prop.id, 'team', prop.underdog_team)}
-                                            checked={userChoices[game.id]?.[prop.id]?.team === prop.underdog_team}
+                                            onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
+                                            checked={userChoices[prop.prop_id]?.team === prop.underdog_team}
                                         />
-                                        {prop.underdog_team}
+                                        {prop.underdog_team} ({prop.underdog_points})
                                     </label>
                                 </div>
                                 {console.log(prop.prop_id)}
-                                <button onClick={() => handleWinnerLoserProp(prop.prop_id, userChoices[game.id]?.[prop.id]?.team)}>
+                                <button onClick={() => handleWinnerLoserProp(prop.prop_id, userChoices[prop.prop_id]?.team)}>
                                     Save Answer
                                 </button>
                             </div>
@@ -169,10 +239,10 @@ const ViewGameForms = () => {
                                             type="radio"
                                             name={`game_${game.id}_over_under_${index}`}
                                             value="over"
-                                            onChange={() => handleChoiceChange(game.id, prop.id, 'choice', 'over')}
-                                            checked={userChoices[game.id]?.[prop.id]?.choice === 'over'}
+                                            onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
+                                            checked={userChoices[prop.prop_id]?.choice === 'over'}
                                         />
-                                        Over
+                                        Over ({prop.over_points})
                                     </label>
                                 </div>
                                 <div>
@@ -181,18 +251,21 @@ const ViewGameForms = () => {
                                             type="radio"
                                             name={`game_${game.id}_over_under_${index}`}
                                             value="under"
-                                            onChange={() => handleChoiceChange(game.id, prop.id, 'choice', 'under')}
-                                            checked={userChoices[game.id]?.[prop.id]?.choice === 'under'}
+                                            onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
+                                            checked={userChoices[prop.prop_id]?.choice === 'under'}
                                         />
-                                        Under
+                                        Under ({prop.under_points})
                                     </label>
                                 </div>
 
-                                <button onClick={() => handleOverUnderProp(prop.prop_id, userChoices[game.id]?.[prop.id]?.choice)}>
+                                <button onClick={() => handleOverUnderProp(prop.prop_id, userChoices[prop.prop_id]?.choice)}>
                                     Save Answer
                                 </button>
                             </div>
                         ))}
+                        <button onClick={() => handleNavigation(game.id)} class="bg-green-600 hover:bg-green-700">
+                            Set Answers
+                        </button>
                     </div>
                 ))
             ) : (
