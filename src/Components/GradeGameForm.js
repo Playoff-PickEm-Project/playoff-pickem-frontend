@@ -1,12 +1,57 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getUsername } from '../App';
 
 const GradeGameForm = () => {
-    const { leaguename } = useParams();
+    const { leagueName } = useParams();
     const { gameId } = useParams();
     const [overUnderProps, setOverUnderProps] = useState([]);
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
     const [userChoices, setUserChoices] = useState({});
+    const [isCommissioner, setIsCommissioner] = useState(false);
+    const navigate = useNavigate();
+    const username = getUsername();
+
+    useEffect(() => {
+        const fetchLeagueAndUser = async () => {
+            try {
+                // Fetch league data
+                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!leagueResponse.ok) {
+                    throw new Error(`HTTP error! status: ${leagueResponse.status}`);
+                }
+                const leagueData = await leagueResponse.json();
+                const userID = leagueData.commissioner.user_id;
+    
+                // Fetch user data
+                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                if (!userResponse.ok) {
+                    throw new Error(`HTTP error! status: ${userResponse.status}`);
+                }
+                const userData = await userResponse.json();
+    
+                // Compare user IDs
+                if (userID !== userData.id) {
+                    navigate(`/league-home/${leagueName}`);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Something went wrong");
+            }
+        };
+    
+        fetchLeagueAndUser();
+    }, [leagueName, username, navigate]);
 
     const handleSetCorrectAnswers = ( event ) => {
         event.preventDefault();
@@ -16,7 +61,7 @@ const GradeGameForm = () => {
             // Loop through each winnerLoserProp
             for (const prop of winnerLoserProps) {
                 const data = {
-                    leagueName: leaguename,
+                    leagueName: leagueName,
                     prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
                     answer: userChoices[prop.prop_id]?.team, // Answer would be the selected team
                 };
@@ -46,7 +91,7 @@ const GradeGameForm = () => {
             // Loop through each overUnderProp
             for (const prop of overUnderProps) {
                 const data = {
-                    leagueName: leaguename,
+                    leagueName: leagueName,
                     prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
                     answer: userChoices[prop.prop_id]?.choice, // Answer would be the selected team
                 };
@@ -73,34 +118,6 @@ const GradeGameForm = () => {
                 }
             }
         }
-
-        setCorrectAnswers();
-    }
-
-    useEffect(() => {
-        fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        }).then((response) => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json(); // Parse the JSON body
-        }).then((data) => {
-            console.log(data);
-            setOverUnderProps(data.over_under_props);
-            setWinnerLoserProps(data.winner_loser_props);
-        }).catch((error) => {
-            console.error(error); // Log the error
-            alert("Something went wrong");
-        });
-    }, [])
-
-    const handleGradeAnswers = ( event ) => {
-        event.preventDefault();
-
         async function gradeAnswers() {
             const data = {
                 game_id: gameId
@@ -125,8 +142,30 @@ const GradeGameForm = () => {
             }
         }
 
+        setCorrectAnswers();
         gradeAnswers();
     }
+
+    useEffect(() => {
+        fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Parse the JSON body
+        }).then((data) => {
+            console.log(data);
+            setOverUnderProps(data.over_under_props);
+            setWinnerLoserProps(data.winner_loser_props);
+        }).catch((error) => {
+            console.error(error); // Log the error
+            alert("Something went wrong");
+        });
+    }, [])
 
     const handleChoiceChange = (propId, type, value) => {
         setUserChoices((prev) => ({
@@ -211,11 +250,7 @@ const GradeGameForm = () => {
             ))}
 
             <button onClick={handleSetCorrectAnswers}>
-                Set correct answers
-            </button>
-
-            <button onClick={handleGradeAnswers}>
-                Calculate scores
+                Set correct answers and grade them
             </button>
         </div>
     )

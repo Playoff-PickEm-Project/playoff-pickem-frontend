@@ -11,6 +11,49 @@ const ViewGameForms = () => {
     const [overUnderAnswers, setOverUnderAnswers] = useState({})
     const navigate = useNavigate();
 
+    const [isCommissioner, setIsCommissioner] = useState(false);
+
+    useEffect(() => {
+        let userID = 0;
+        fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Parse the JSON body
+        }).then((data) => {
+            console.log(data);
+            userID = data.commissioner.user_id;
+        }).catch((error) => {
+            console.error(error); // Log the error
+            alert("Something went wrong");
+        });
+
+        fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        }).then((response) => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // Parse the JSON body
+        }).then((data) => {
+            console.log(data);
+            if (userID = data.id) {
+            setIsCommissioner(true);
+            }
+        }).catch((error) => {
+            console.error(error); // Log the error
+            alert("Something went wrong");
+        });
+    }, [])
+
     useEffect(() => {
         function getWinnerLoserAnswers() {
             fetch(`http://127.0.0.1:5000/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
@@ -263,9 +306,9 @@ const ViewGameForms = () => {
                                 </button>
                             </div>
                         ))}
-                        <button onClick={() => handleNavigation(game.id)} class="bg-green-600 hover:bg-green-700">
+                        {isCommissioner && <button onClick={() => handleNavigation(game.id)} class="bg-green-600 hover:bg-green-700">
                             Set Answers
-                        </button>
+                        </button>}
                     </div>
                 ))
             ) : (
