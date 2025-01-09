@@ -12,6 +12,7 @@ import LeagueHome from './Components/LeagueHome';
 import CreateLeague from './Components/LeagueCreation/LeagueCreation';
 import JoinLeague from './Components/LeagueCreation/LeagueJoin';
 import ViewGameForms from './Components/ViewGameForms';
+import GradeGameForm from './Components/GradeGameForm';
 
 export const getUsername = () => {
   return localStorage.getItem('username')
@@ -63,6 +64,7 @@ export default function App() {
         {/* LeagueHome page using leagueName */}
         <Route path="/league-home/:leagueName" element={authorized ? <LeagueHome /> : <Navigate to="/" />} />
         <Route path="/league-home/:leagueName/viewGames" element={authorized ? <ViewGameForms /> : <Navigate to="/" />} />
+        <Route path="/league-home/:leagueName/setCorrectAnswers/:gameId" element={authorized ? <GradeGameForm /> : <Navigate to="/" />} />
       </Routes>
     </div>
   );
