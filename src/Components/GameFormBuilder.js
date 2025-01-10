@@ -424,22 +424,18 @@ const GameFormBuilder = () => {
               {question.field_type === "over_under" && (
                 <div>
                   <h4 className="font-medium text-gray-700">Options</h4>
-                  <ul className="space-y-2">
-                    {question.choices.map((option, optionIndex) => (
-                      <li key={optionIndex} className="flex items-center space-x-2">
-                        <input
-                          type="text"
-                          name="option"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                          value={option.choice_text}
-                          onChange={(e) => handleOptionChange(e, questionIndex, optionIndex)}
-                        />
+                  <ul>
+                    {["Over", "Under"].map((option, optionIndex) => (
+                      <li key={optionIndex} className="flex items-center space-x-4">
+                        {/* Hardcoded choice text */}
+                        <span className="text-lg font-medium text-gray-700">{option}</span>
+                        
+                        {/* User input for points */}
                         <input
                           type="number"
                           name="points"
-                          value={option.points}
-                          onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
                           className="w-24 px-4 py-2 border border-gray-300 rounded-md"
+                          onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
                           min="0"
                           step="0.5" // Allows half-point values
                         />

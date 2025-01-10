@@ -12,47 +12,57 @@ const LeagueHome = () => {
   const navigate = useNavigate();
   const username = getUsername();
   const [isCommissioner, setIsCommissioner] = useState(false);
+  const [league, setLeague] = useState({});
+  const [userID, setUserID] = useState(null);
 
   useEffect(() => {
-    let userID = 0;
-    fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-    }).then((response) => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); // Parse the JSON body
-    }).then((data) => {
-        console.log(data);
-        userID = data.commissioner.user_id;
-    }).catch((error) => {
-        console.error(error); // Log the error
-        alert("Something went wrong");
-    });
+    const fetchData = async () => {
+        try {
+            // Fetch league data
+            const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-    fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
-      method: 'GET',
-      headers: {
-          'Content-Type': 'application/json',
-      },
-    }).then((response) => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (!leagueResponse.ok) {
+                throw new Error(`HTTP error! status: ${leagueResponse.status}`);
+            }
+
+            const leagueData = await leagueResponse.json();
+            setLeague(leagueData);
+            setUserID(leagueData.commissioner.user_id);
+
+            // Fetch user data and compare to check if they are the commissioner
+            const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!userResponse.ok) {
+                throw new Error(`HTTP error! status: ${userResponse.status}`);
+            }
+
+            const userData = await userResponse.json();
+
+            // Check if user is the commissioner
+            if (leagueData.commissioner.user_id === userData.id) {
+                setIsCommissioner(true);
+            } else {
+                // If not the commissioner, navigate away
+                
+            }
+        } catch (error) {
+            console.error(error); // Log the error
+            alert("Something went wrong");
         }
-        return response.json(); // Parse the JSON body
-    }).then((data) => {
-        console.log(data);
-        if (userID = data.id) {
-          setIsCommissioner(true);
-        }
-    }).catch((error) => {
-        console.error(error); // Log the error
-        alert("Something went wrong");
-    });
-  }, [])
+    };
+
+    fetchData();
+}, [leagueName, username, navigate]);
 
   const handleNavigateLM = () => {
     navigate(`/league-home/${leagueName}/league_manager_tools`);

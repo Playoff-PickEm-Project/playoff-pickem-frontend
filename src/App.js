@@ -71,7 +71,7 @@ export default function App() {
         <Route path="/league-home/:leagueName/setCorrectAnswers/:gameId" element={authorized ? <GradeGameForm /> : <Navigate to="/" />} />
 
 
-        <Route path="/league-home/:leagueName/league_manager_tools" element={<LMToolsHome />} />
+        <Route path="/league-home/:leagueName/league_manager_tools" element={authorized ? <LMToolsHome /> : <Navigate to="/" />} />
       </Routes>
     </div>
   );

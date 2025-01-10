@@ -13,6 +13,54 @@ const GamePage = () => {
     const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({});
     const [overUnderAnswers, setOverUnderAnswers] = useState({});
     const [gameStartTime, setGameStartTime] = useState(null);
+    const isGameExpired = new Date() > gameStartTime;
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Fetch league data
+                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (!leagueResponse.ok) {
+                    throw new Error(`HTTP error! status: ${leagueResponse.status}`);
+                }
+    
+                const leagueData = await leagueResponse.json();
+    
+                // Fetch user data and compare to check if they are the commissioner
+                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (!userResponse.ok) {
+                    throw new Error(`HTTP error! status: ${userResponse.status}`);
+                }
+    
+                const userData = await userResponse.json();
+    
+                // Check if user is the commissioner
+                if (leagueData.commissioner.user_id === userData.id) {
+                    setIsCommissioner(true);
+                } else {
+                    // If not the commissioner, navigate away
+                    
+                }
+            } catch (error) {
+                console.error(error); // Log the error
+                alert("Something went wrong");
+            }
+        };
+    
+        fetchData();
+    }, [leagueName, username, navigate]);
 
     useEffect(() => {
         fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
@@ -75,6 +123,9 @@ const GamePage = () => {
     }, [winnerLoserAnswers, overUnderAnswers]);
 
     const handleWinnerLoserProp = (prop_id, answer) => {
+        if (isGameExpired) {
+            return;
+        }
         const data = { leagueName, username, prop_id, answer };
         fetch("http://127.0.0.1:5000/answer_winner_loser_prop", {
             method: 'POST',
@@ -96,6 +147,9 @@ const GamePage = () => {
     };
 
     const handleOverUnderProp = (prop_id, answer) => {
+        if (isGameExpired) {
+            return;
+        }
         const data = { leagueName, username, prop_id, answer };
         fetch("http://127.0.0.1:5000/answer_over_under_prop", {
             method: 'POST',
@@ -109,7 +163,6 @@ const GamePage = () => {
                     ...prevChoices,
                     [prop_id]: { choice: answer }
                 }));
-                alert("Answer saved successfully");
             } else {
                 alert("Answer was not saved");
             }
@@ -121,11 +174,11 @@ const GamePage = () => {
         navigate(`/league-home/${leagueName}/setCorrectAnswers/${gameId}`);
     };
 
-    const isGameExpired = new Date() > gameStartTime;
-
     return (
         <div style={{ padding: '20px' }}>
             <h3>Game Form</h3>
+            {isGameExpired && 
+                <h3>Answers are locked!</h3>}
             {/* Render winner-loser props */}
             {winnerLoserProps.map((prop, index) => (
                 <div key={index}>
@@ -192,7 +245,9 @@ const GamePage = () => {
                 </div>
             ))}
 
-            {isCommissioner && <button onClick={handleNavigation}>Set Answers</button>}
+            {isCommissioner && <button onClick={() => handleNavigation(gameId)} class="bg-green-600 hover:bg-green-700">
+                Grade All Answers
+            </button>}
         </div>
     );
 };

@@ -21,7 +21,8 @@ const Leaderboard = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setPlayerStandings(data.league_players);
+          data.league_players.sort((a, b) => b.points - a.points); // Sort in descending order (highest points first)
+          setPlayerStandings(data.league_players); // Set the sorted data
           console.log(data.league_players);
         }
         else {
