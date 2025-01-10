@@ -146,7 +146,7 @@ const LMToolsHome = () => {
                 </ul>
                 </div>
 
-            <button style={{margin: "20px"}} onClick={handleDeleteLeague} className='bg-red-700 hover:bg-red-900'>
+            <button style={{margin: "20px"}} onClick={() => setShowModal(true)} className='bg-red-700 hover:bg-red-900'>
                 Delete league
             </button>
 
