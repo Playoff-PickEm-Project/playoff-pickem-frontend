@@ -7,59 +7,59 @@ const LMToolsHome = () => {
     const [isCommissioner, setIsCommissioner] = useState(false);
     const [showModal, setShowModal] = useState(false); // State for modal visibility
     const { leagueName } = useParams();
+    const [league, setLeague] = useState({});
     const username = getUsername();
     const navigate = useNavigate();
-
-    if (!isCommissioner) {
-        navigate(`/league-home/${leagueName}`);
-    }
+    const [userID, setUserID] = useState(null);
 
     useEffect(() => {
-        let userID = 0;
-        fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        const fetchData = async () => {
+            try {
+                // Fetch league data
+                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (!leagueResponse.ok) {
+                    throw new Error(`HTTP error! status: ${leagueResponse.status}`);
                 }
-                return response.json();
-            })
-            .then((data) => {
-                console.log(data);
-                userID = data.commissioner.user_id;
-            })
-            .catch((error) => {
-                console.error(error);
-                alert("Something went wrong");
-            });
-
-        fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+    
+                const leagueData = await leagueResponse.json();
+                setLeague(leagueData);
+                setUserID(leagueData.commissioner.user_id);
+    
+                // Fetch user data and compare to check if they are the commissioner
+                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+    
+                if (!userResponse.ok) {
+                    throw new Error(`HTTP error! status: ${userResponse.status}`);
                 }
-                return response.json();
-            })
-            .then((data) => {
-                console.log(data);
-                if (userID === data.id) {
+    
+                const userData = await userResponse.json();
+    
+                // Check if user is the commissioner
+                if (leagueData.commissioner.user_id === userData.id) {
                     setIsCommissioner(true);
+                } else {
+                    // If not the commissioner, navigate away
+                    navigate(`/league-home/${leagueName}`);
                 }
-            })
-            .catch((error) => {
-                console.error(error);
+            } catch (error) {
+                console.error(error); // Log the error
                 alert("Something went wrong");
-            });
-    }, [leagueName, username]);
+            }
+        };
+    
+        fetchData();
+    }, [leagueName, username, navigate]);
 
     const handleDeleteLeague = async () => {
         const data = { leagueName };
@@ -70,31 +70,83 @@ const LMToolsHome = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
-            });
-
+                body: JSON.stringify(data)
+            })
+    
             if (response.ok) {
                 alert("League deleted successfully I think?");
                 navigate("/league-list");
-            } else {
-                alert("Something went wrong");
             }
-        } catch (error) {
-            alert("Endpoint wasn't reached, I think");
+            else {
+                alert("something went wrong");
+            }
         }
-    };
+        catch (error) {
+            alert("endpoint wasnt reached i think");
+        }
+        }
+    
+        deleteLeague();
+    }
 
-    return (
+    const handleDeletePlayer = ( playername ) => {
+        async function deletePlayer() {
+            const data = {
+                leaguename: leagueName,
+                playerName: playername
+            };
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/delete_player", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+
+                if (response.ok) {
+                    alert("Player deleted successfully.");
+                }
+                else {
+                    alert("something went wrong");
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        deletePlayer();
+    }
+
+    return(
         <div>
             <h1>LM Tools</h1>
             <GameFormBuilder />
 
-            {/* Delete Button */}
-            <button
-                onClick={() => setShowModal(true)}
-                className="bg-red-700 hover:bg-red-900 text-white py-2 px-4 rounded"
-            >
-                Delete League
+            <div className="bg-white p-6 rounded-md shadow-md">
+                <h2 className="text-2xl font-semibold mb-4 text-gray-800">League Players</h2>
+                <ul className="divide-y divide-gray-200">
+                    {league.league_players &&
+                    Array.isArray(league.league_players) &&
+                    league.league_players.map((player) => (
+                        <li key={player.id} className="flex justify-between items-center py-4">
+                            <div>
+                                <p className="text-lg font-medium text-gray-700">{player.name}</p>
+                            </div>
+                            {player.id !== league.commissioner_id && (
+                                <button onClick={() => handleDeletePlayer(player.name)} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none">
+                                    Delete Player
+                                </button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+                </div>
+
+            <button style={{margin: "20px"}} onClick={handleDeleteLeague} className='bg-red-700 hover:bg-red-900'>
+                Delete league
             </button>
 
             {/* Modal */}
