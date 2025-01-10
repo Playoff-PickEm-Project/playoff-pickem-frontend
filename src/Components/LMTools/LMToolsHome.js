@@ -11,6 +11,7 @@ const LMToolsHome = () => {
     const username = getUsername();
     const navigate = useNavigate();
     const [userID, setUserID] = useState(null);
+    const [showDeletePlayerModal, setDeletePlayerModal] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -108,6 +109,7 @@ const LMToolsHome = () => {
 
                 if (response.ok) {
                     alert("Player deleted successfully.");
+                    navigate(`/league-home/${leagueName}/league_manager_tools`);
                 }
                 else {
                     alert("something went wrong");
@@ -129,22 +131,55 @@ const LMToolsHome = () => {
             <div className="bg-white p-6 rounded-md shadow-md">
                 <h2 className="text-2xl font-semibold mb-4 text-gray-800">League Players</h2>
                 <ul className="divide-y divide-gray-200">
-                    {league.league_players &&
+                {league.league_players &&
                     Array.isArray(league.league_players) &&
                     league.league_players.map((player) => (
                         <li key={player.id} className="flex justify-between items-center py-4">
-                            <div>
-                                <p className="text-lg font-medium text-gray-700">{player.name}</p>
-                            </div>
-                            {player.id !== league.commissioner_id && (
-                                <button onClick={() => handleDeletePlayer(player.name)} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none">
-                                    Delete Player
-                                </button>
-                            )}
+                        <div>
+                            <p className="text-lg font-medium text-gray-700">{player.name}</p>
+                        </div>
+                        {player.id !== league.commissioner_id && (
+                            <button
+                            onClick={() => setDeletePlayerModal(player)} // Open modal with player data
+                            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none"
+                            >
+                                Delete Player
+                            </button>
+                        )}
                         </li>
                     ))}
                 </ul>
-                </div>
+
+                {/* Centralized Modal */}
+                {showDeletePlayerModal && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+                            <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
+                            <p className="mb-4">
+                                Are you sure you want to delete <strong>{showDeletePlayerModal.name}</strong> from the league?
+                            </p>
+                            <div className="flex justify-end">
+                            <button
+                                onClick={() => setDeletePlayerModal(null)} // Close the modal
+                                className="bg-gray-500 hover:bg-gray-700 text-white py-2 px-4 rounded mr-2"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                setDeletePlayerModal(null); // Close the modal
+                                handleDeletePlayer(showDeletePlayerModal.name); // Delete the player
+                                }}
+                                className="bg-red-700 hover:bg-red-900 text-white py-2 px-4 rounded"
+                            >
+                                Delete
+                            </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                
 
             <button style={{margin: "20px"}} onClick={() => setShowModal(true)} className='bg-red-700 hover:bg-red-900'>
                 Delete league
@@ -176,6 +211,7 @@ const LMToolsHome = () => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };
