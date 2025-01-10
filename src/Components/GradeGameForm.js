@@ -54,17 +54,27 @@ const GradeGameForm = () => {
         fetchLeagueAndUser();
     }, [leagueName, username, navigate]);
 
-    const handleSetCorrectAnswers = ( event ) => {
+    console.log(userChoices)
+
+    const handleSetCorrectAnswers = async ( event ) => {
         event.preventDefault();
 
         async function setCorrectAnswers() {
             // WANT A FOR LOOP TO ITERATE THROUGH EACH 
             // Loop through each winnerLoserProp
             for (const prop of winnerLoserProps) {
+                let set_answer = "";
+                if (userChoices[prop.prop_id]) {
+                    set_answer = userChoices[prop.prop_id]?.team;
+                }
+                else {
+                    set_answer = correctAnswers[prop.prop_id]
+                }
+
                 const data = {
                     leagueName: leagueName,
                     prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
-                    answer: userChoices[prop.prop_id]?.team, // Answer would be the selected team
+                    answer: set_answer, // Answer would be the selected team
                 };
 
                 try {
@@ -91,10 +101,22 @@ const GradeGameForm = () => {
 
             // Loop through each overUnderProp
             for (const prop of overUnderProps) {
+                let set_answer = "";
+                if (userChoices[prop.prop_id]) {
+                    console.log("here")
+                    set_answer = userChoices[prop.prop_id]?.choice;
+                }
+                else {
+                    set_answer = correctAnswers[prop.prop_id]
+                }
+                console.log(userChoices)
+                console.log(correctAnswers)
+                console.log(set_answer)
+
                 const data = {
                     leagueName: leagueName,
                     prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
-                    answer: userChoices[prop.prop_id]?.choice, // Answer would be the selected team
+                    answer: set_answer, // Answer would be the selected team
                 };
 
                 try {
@@ -143,10 +165,12 @@ const GradeGameForm = () => {
             }
         }
 
-        setCorrectAnswers();
-        gradeAnswers();
+        await setCorrectAnswers();
+        await gradeAnswers();
     }
+
     console.log(userChoices)
+
     useEffect(() => {
         fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
             method: 'GET',

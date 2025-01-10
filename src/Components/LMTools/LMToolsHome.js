@@ -61,29 +61,30 @@ const LMToolsHome = () => {
         fetchData();
     }, [leagueName, username, navigate]);
 
-    const handleDeleteLeague = async () => {
-        const data = { leagueName };
+    const handleDeleteLeague = () => {
+        async function deleteLeague() {
+            const data = { leagueName };
 
-        try {
-            const response = await fetch("http://127.0.0.1:5000/delete_league", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-    
-            if (response.ok) {
-                alert("League deleted successfully I think?");
-                navigate("/league-list");
+            try {
+                const response = await fetch("http://127.0.0.1:5000/delete_league", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+        
+                if (response.ok) {
+                    alert("League deleted successfully I think?");
+                    navigate("/league-list");
+                }
+                else {
+                    alert("something went wrong");
+                }
             }
-            else {
-                alert("something went wrong");
+            catch (error) {
+                alert("endpoint wasnt reached i think");
             }
-        }
-        catch (error) {
-            alert("endpoint wasnt reached i think");
-        }
         }
     
         deleteLeague();
