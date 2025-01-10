@@ -14,6 +14,8 @@ import JoinLeague from './Components/LeagueCreation/LeagueJoin';
 import ViewGameForms from './Components/ViewGameForms';
 import GradeGameForm from './Components/GradeGameForm';
 import LMToolsHome from './Components/LMTools/LMToolsHome';
+import GamePage from './Components/HomeView/GamePage';
+import GameList from './Components/HomeView/GameList';
 
 export const getUsername = () => {
   return localStorage.getItem('username')
@@ -64,7 +66,8 @@ export default function App() {
         
         {/* LeagueHome page using leagueName */}
         <Route path="/league-home/:leagueName" element={authorized ? <LeagueHome /> : <Navigate to="/" />} />
-        <Route path="/league-home/:leagueName/viewGames" element={authorized ? <ViewGameForms /> : <Navigate to="/" />} />
+        <Route path="/league-home/:leagueName/viewGames" element={authorized ? <GameList /> : <Navigate to="/" />} />
+        <Route path="/league-home/:leagueName/viewGames/:gameId" element={authorized ? <GamePage /> : <Navigate to="/" />} />
         <Route path="/league-home/:leagueName/setCorrectAnswers/:gameId" element={authorized ? <GradeGameForm /> : <Navigate to="/" />} />
 
 
