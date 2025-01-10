@@ -9,6 +9,7 @@ const GradeGameForm = () => {
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
     const [userChoices, setUserChoices] = useState({});
     const [isCommissioner, setIsCommissioner] = useState(false);
+    const [correctAnswers, setCorrectAnswers] = useState([]);
     const navigate = useNavigate();
     const username = getUsername();
 
@@ -145,7 +146,7 @@ const GradeGameForm = () => {
         setCorrectAnswers();
         gradeAnswers();
     }
-
+    console.log(userChoices)
     useEffect(() => {
         fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
             method: 'GET',
@@ -165,6 +166,36 @@ const GradeGameForm = () => {
             console.error(error); // Log the error
             alert("Something went wrong");
         });
+    }, [])
+
+    useEffect(() => {
+        async function getSavedAnswers() {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/get_correct_prop_answers?game_id=${gameId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                
+                if (!response.ok) {
+                    console.log("something went wrong")
+                }
+
+                const data = await response.json();
+                const answersMap = data.reduce((acc, { prop_id, correct_answer }) => {
+                    acc[prop_id] = correct_answer;
+                    return acc;
+                }, {});
+                setCorrectAnswers(answersMap)
+                console.log(userChoices)
+            }
+            catch (error) {
+                console.log(error);
+            }
+        }
+
+        getSavedAnswers();
     }, [])
 
     const handleChoiceChange = (propId, type, value) => {
@@ -192,7 +223,7 @@ const GradeGameForm = () => {
                                 name={`winner_${index}`}
                                 value={prop.favorite_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.favorite_team}
+                                checked={userChoices[prop.prop_id]?.team === prop.favorite_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.favorite_team)}
                             />
                             {prop.favorite_team} ({prop.favorite_points})
                         </label>
@@ -204,7 +235,7 @@ const GradeGameForm = () => {
                                 name={`winner_${index}`}
                                 value={prop.underdog_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.underdog_team}
+                                checked={userChoices[prop.prop_id]?.team === prop.underdog_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.underdog_team)}
                             />
                             {prop.underdog_team} ({prop.underdog_points})
                         </label>
@@ -226,7 +257,7 @@ const GradeGameForm = () => {
                                 name={`over_under_${index}`}
                                 value="over"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
-                                checked={userChoices[prop.prop_id]?.choice === 'over'}
+                                checked={userChoices[prop.prop_id]?.choice === 'over' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'over')}
                             />
                             Over ({prop.over_points})
                         </label>
@@ -238,7 +269,7 @@ const GradeGameForm = () => {
                                 name={`over_under_${index}`}
                                 value="under"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
-                                checked={userChoices[prop.prop_id]?.choice === 'under'}
+                                checked={userChoices[prop.prop_id]?.choice === 'under' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'under')}
                             />
                             Under ({prop.under_points})
                         </label>
