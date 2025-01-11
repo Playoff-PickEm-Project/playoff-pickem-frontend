@@ -93,6 +93,7 @@ const GameFormBuilder = () => {
 
         if (response.ok) {
           alert("Game created successfully I think?");
+          navigate(`/league-home/${leagueName}/league_manager_tools`);
         }
         else {
           alert("something went wrong");
