@@ -13,20 +13,20 @@ const GamePage = () => {
     const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({});
     const [overUnderAnswers, setOverUnderAnswers] = useState({});
     const [gameStartTime, setGameStartTime] = useState(null);
-    //const isGameExpired = new Date() > gameStartTime;
+    const isGameExpired = new Date() > gameStartTime;
     const [allPlayersAnswers, setAllPlayersAnswers] = useState([]);
     const apiUrl = process.env.REACT_APP_API_URL;
 
-    const [isGameExpired, setIsGameExpired] = useState(new Date() > gameStartTime);
-    useEffect(() => {
-        // Check if the game has expired and update state
-        const interval = setInterval(() => {
-            const expired = new Date() > gameStartTime;
-            setIsGameExpired(expired);
-        }, 300000); // Check every second (adjust if necessary)
+    // const [isGameExpired, setIsGameExpired] = useState(new Date() > gameStartTime);
+    // useEffect(() => {
+    //     // Check if the game has expired and update state
+    //     const interval = setInterval(() => {
+    //         const expired = new Date() > gameStartTime;
+    //         setIsGameExpired(expired);
+    //     }, 300000); // Check every second (adjust if necessary)
 
-        return () => clearInterval(interval); // Cleanup interval on unmount
-    }, [gameStartTime]);
+    //     return () => clearInterval(interval); // Cleanup interval on unmount
+    // }, [gameStartTime]);
 
     useEffect(() => {
         if (isGameExpired) {
