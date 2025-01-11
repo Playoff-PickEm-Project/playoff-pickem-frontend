@@ -11,15 +11,16 @@ const EditGameForm = () => {
     const [editingProps, setEditingProps] = useState({});
     const username = getUsername();
     const navigate = useNavigate();
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`);
+                const leagueResponse = await fetch(`${apiUrl}/get_league_by_name?leagueName=${leagueName}`);
                 const leagueData = await leagueResponse.json();
                 setLeague(leagueData);
 
-                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`);
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`);
                 const userData = await userResponse.json();
 
                 if (leagueData.commissioner.user_id === userData.id) {
@@ -36,7 +37,7 @@ const EditGameForm = () => {
     }, [leagueName, username, navigate]);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`)
+        fetch(`${apiUrl}/get_game_by_id?game_id=${gameId}`)
             .then((res) => res.json())
             .then((data) => {
                 setWinnerLoserProps(data.winner_loser_props);
@@ -71,8 +72,8 @@ const EditGameForm = () => {
     const handleSave = (propId, type) => {
         const endpoint =
             type === "winnerLoser"
-                ? "http://127.0.0.1:5000/update_winner_loser_prop"
-                : "http://127.0.0.1:5000/update_over_under_prop";
+                ? `${apiUrl}/update_winner_loser_prop`
+                : `${apiUrl}/update_over_under_prop`;
         const propData =
             type === "winnerLoser"
                 ? winnerLoserProps.find((prop) => prop.prop_id === propId)
@@ -105,7 +106,7 @@ const EditGameForm = () => {
                 leaguename: leagueName
             }
             try {
-                const response = await fetch("http://127.0.0.1:5000/delete_game", {
+                const response = await fetch(`${apiUrl}/delete_game`, {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json"

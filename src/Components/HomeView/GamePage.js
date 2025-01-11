@@ -15,12 +15,13 @@ const GamePage = () => {
     const [gameStartTime, setGameStartTime] = useState(null);
     const isGameExpired = new Date() > gameStartTime;
     const [allPlayersAnswers, setAllPlayersAnswers] = useState([]);
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         if (isGameExpired) {
             async function getAnswers() {
                 try {
-                    const response = await fetch(`http://127.0.0.1:5000/view_all_answers_for_game?game_id=${gameId}`, {
+                    const response = await fetch(`${apiUrl}/view_all_answers_for_game?game_id=${gameId}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
@@ -48,7 +49,7 @@ const GamePage = () => {
         const fetchData = async () => {
             try {
                 // Fetch league data
-                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                const leagueResponse = await fetch(`${apiUrl}/get_league_by_name?leagueName=${leagueName}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -62,7 +63,7 @@ const GamePage = () => {
                 const leagueData = await leagueResponse.json();
 
                 // Fetch user data and compare to check if they are the commissioner
-                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ const GamePage = () => {
     }, [leagueName, username, navigate]);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
+        fetch(`${apiUrl}/get_game_by_id?game_id=${gameId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ const GamePage = () => {
     }, [gameId]);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:5000/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
+        fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ const GamePage = () => {
     }, [leagueName, username]);
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:5000/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
+        fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -156,7 +157,7 @@ const GamePage = () => {
             return;
         }
         const data = { leagueName, username, prop_id, answer };
-        fetch("http://127.0.0.1:5000/answer_winner_loser_prop", {
+        fetch(`${apiUrl}/answer_winner_loser_prop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -180,7 +181,7 @@ const GamePage = () => {
             return;
         }
         const data = { leagueName, username, prop_id, answer };
-        fetch("http://127.0.0.1:5000/answer_over_under_prop", {
+        fetch(`${apiUrl}/answer_over_under_prop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)

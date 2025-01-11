@@ -6,6 +6,7 @@ const RegisterPage = () => {
   const [usernameValue, setUsername] = useState("");
   const [passwordValue, setPassword] = useState("");
   const [isPasswordTouched, setPasswordTouched] = useState(false);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const handlePasswordChange = (e) => {
     const value = e.target.value;
@@ -30,7 +31,7 @@ const RegisterPage = () => {
 
       // Try-catch to make a request to the backend with the URL, type of method, JSON content, and the data.
       try {
-        const response = await fetch("http://127.0.0.1:5000/register", {
+        const response = await fetch(`${apiUrl}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

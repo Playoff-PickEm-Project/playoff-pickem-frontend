@@ -10,12 +10,13 @@ const ViewGameForms = () => {
     const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({});
     const [overUnderAnswers, setOverUnderAnswers] = useState({})
     const navigate = useNavigate();
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const [isCommissioner, setIsCommissioner] = useState(false);
 
     useEffect(() => {
         let userID = 0;
-        fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+        fetch(`${apiUrl}/get_league_by_name?leagueName=${leagueName}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -33,7 +34,7 @@ const ViewGameForms = () => {
             alert("Something went wrong");
         });
 
-        fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+        fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ const ViewGameForms = () => {
 
     useEffect(() => {
         function getWinnerLoserAnswers() {
-            fetch(`http://127.0.0.1:5000/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
+            fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ const ViewGameForms = () => {
         }    
 
         function getOverUnderAnswers() {
-            fetch(`http://127.0.0.1:5000/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
+            fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -129,7 +130,7 @@ const ViewGameForms = () => {
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/answer_winner_loser_prop", {
+                const response = await fetch(`${apiUrl}/answer_winner_loser_prop`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -162,7 +163,7 @@ const ViewGameForms = () => {
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/answer_over_under_prop", {
+                const response = await fetch(`${apiUrl}/answer_over_under_prop`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -189,7 +190,7 @@ const ViewGameForms = () => {
         console.log(userChoices)
         async function viewGames() {
             try {
-                const response = await fetch(`http://127.0.0.1:5000/get_games?leagueName=${leagueName}`, {
+                const response = await fetch(`${apiUrl}/get_games?leagueName=${leagueName}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

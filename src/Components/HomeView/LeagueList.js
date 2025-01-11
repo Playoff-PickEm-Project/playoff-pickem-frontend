@@ -8,11 +8,12 @@ import { getUsername } from "../../App";
 const LeagueList = () => {
   const [usersLeagues, setUsersLeagues] = useState([]);
   const username = getUsername();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     async function getUsersLeagues() {
       try {
-        const response = await fetch(`http://127.0.0.1:5000/get_users_leagues?username=${username}`, {
+        const response = await fetch(`${apiUrl}/get_users_leagues?username=${username}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

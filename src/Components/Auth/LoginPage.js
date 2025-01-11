@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 const LoginPage = ({ onLoginSuccess }) => {
   const [usernameValue, setUsername] = useState("");
   const [passwordValue, setPassword] = useState("");
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   // Function to handle a login request
   const handleLogin = (event) => {
@@ -16,7 +17,7 @@ const LoginPage = ({ onLoginSuccess }) => {
       };
 
       try {
-        const response = await fetch("http://127.0.0.1:5000/login", {
+        const response = await fetch(`${apiUrl}/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
