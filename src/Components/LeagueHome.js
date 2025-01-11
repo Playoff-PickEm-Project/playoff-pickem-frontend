@@ -14,12 +14,13 @@ const LeagueHome = () => {
   const [isCommissioner, setIsCommissioner] = useState(false);
   const [league, setLeague] = useState({});
   const [userID, setUserID] = useState(null);
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {
         try {
             // Fetch league data
-            const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+            const leagueResponse = await fetch(`${apiUrl}/get_league_by_name?leagueName=${leagueName}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -35,7 +36,7 @@ const LeagueHome = () => {
             setUserID(leagueData.commissioner.user_id);
 
             // Fetch user data and compare to check if they are the commissioner
-            const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+            const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

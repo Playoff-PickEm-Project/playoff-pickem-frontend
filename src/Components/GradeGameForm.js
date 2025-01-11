@@ -12,12 +12,13 @@ const GradeGameForm = () => {
     const [correctAnswers, setCorrectAnswers] = useState([]);
     const navigate = useNavigate();
     const username = getUsername();
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     useEffect(() => {
         const fetchLeagueAndUser = async () => {
             try {
                 // Fetch league data
-                const leagueResponse = await fetch(`http://127.0.0.1:5000/get_league_by_name?leagueName=${leagueName}`, {
+                const leagueResponse = await fetch(`${apiUrl}/get_league_by_name?leagueName=${leagueName}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ const GradeGameForm = () => {
                 const userID = leagueData.commissioner.user_id;
 
                 // Fetch user data
-                const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ const GradeGameForm = () => {
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:5000/grade_game", {
+                const response = await fetch(`${apiUrl}/grade_game`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -169,7 +170,7 @@ const GradeGameForm = () => {
     console.log(userChoices)
 
     useEffect(() => {
-        fetch(`http://127.0.0.1:5000/get_game_by_id?game_id=${gameId}`, {
+        fetch(`${apiUrl}/get_game_by_id?game_id=${gameId}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -192,7 +193,7 @@ const GradeGameForm = () => {
     useEffect(() => {
         async function getSavedAnswers() {
             try {
-                const response = await fetch(`http://127.0.0.1:5000/get_correct_prop_answers?game_id=${gameId}`, {
+                const response = await fetch(`${apiUrl}/get_correct_prop_answers?game_id=${gameId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -235,7 +236,7 @@ const GradeGameForm = () => {
             answer: answer
         };
 
-        fetch("http://127.0.0.1:5000/correct_winner_loser_prop", {
+        fetch(`${apiUrl}/correct_winner_loser_prop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -261,7 +262,7 @@ const GradeGameForm = () => {
             answer: answer
         };
 
-        fetch("http://127.0.0.1:5000/correct_over_under_prop", {
+        fetch(`${apiUrl}/correct_over_under_prop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)

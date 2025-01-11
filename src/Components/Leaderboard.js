@@ -8,11 +8,12 @@ import { useParams } from "react-router-dom";
 const Leaderboard = () => {
   const [playerStandings, setPlayerStandings] = useState([])
   const { leagueName } = useParams();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     async function getPlayerStandings() {
       try {
-        const response = await fetch(`http://127.0.0.1:5000/get_player_standings?leagueName=${leagueName}`, {
+        const response = await fetch(`${apiUrl}/get_player_standings?leagueName=${leagueName}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

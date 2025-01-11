@@ -8,6 +8,7 @@ const JoinLeague = () => {
     const [playerName, setPlayerName] = useState("");
     const username = getUsername();
     const navigate = useNavigate();
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleJoinLeague = (event) => {
         event.preventDefault();
@@ -20,7 +21,7 @@ const JoinLeague = () => {
           };
     
           try {
-            const response = await fetch("http://127.0.0.1:5000/join_league", {
+            const response = await fetch(`${apiUrl}/join_league`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

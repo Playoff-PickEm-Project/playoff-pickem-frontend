@@ -8,6 +8,7 @@ const GameFormBuilder = () => {
   const { formId } = useParams();
   const { leagueName } = useParams();
   const navigate = useNavigate();
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   const handleCreateGame = () => {
     async function createGame() {
@@ -82,7 +83,7 @@ const GameFormBuilder = () => {
       }
 
       try {
-        const response = await fetch("http://127.0.0.1:5000/create_game", {
+        const response = await fetch(`${apiUrl}/create_game`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
