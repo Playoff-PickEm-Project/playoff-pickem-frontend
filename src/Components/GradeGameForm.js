@@ -165,6 +165,7 @@ const GradeGameForm = () => {
 
         await setCorrectAnswers();
         await gradeAnswers();
+        alert("Game should be successfully graded.")
     }
 
     console.log(userChoices)
