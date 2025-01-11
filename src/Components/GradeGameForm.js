@@ -60,85 +60,85 @@ const GradeGameForm = () => {
     const handleSetCorrectAnswers = async (event) => {
         event.preventDefault();
 
-        // async function setCorrectAnswers() {
-        //     // WANT A FOR LOOP TO ITERATE THROUGH EACH 
-        //     // Loop through each winnerLoserProp
-        //     for (const prop of winnerLoserProps) {
-        //         let set_answer = "";
-        //         if (userChoices[prop.prop_id]) {
-        //             set_answer = userChoices[prop.prop_id]?.team;
-        //         }
-        //         else {
-        //             set_answer = correctAnswers[prop.prop_id]
-        //         }
+        async function setCorrectAnswers() {
+            // WANT A FOR LOOP TO ITERATE THROUGH EACH 
+            // Loop through each winnerLoserProp
+            for (const prop of winnerLoserProps) {
+                let set_answer = "";
+                if (userChoices[prop.prop_id]) {
+                    set_answer = userChoices[prop.prop_id]?.team;
+                }
+                else {
+                    set_answer = correctAnswers[prop.prop_id]
+                }
 
-        //         const data = {
-        //             leagueName: leagueName,
-        //             prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
-        //             answer: set_answer, // Answer would be the selected team
-        //         };
+                const data = {
+                    leagueName: leagueName,
+                    prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
+                    answer: set_answer, // Answer would be the selected team
+                };
 
-        //         try {
-        //             // Send the data to your API
-        //             const response = await fetch('http://127.0.0.1:5000/set_correct_winner_loser_prop', {
-        //                 method: 'POST',
-        //                 headers: {
-        //                     'Content-Type': 'application/json',
-        //                 },
-        //                 body: JSON.stringify(data),
-        //             });
+                try {
+                    // Send the data to your API
+                    const response = await fetch(`${apiUrl}/set_correct_winner_loser_prop`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
 
-        //             if (!response.ok) {
-        //                 alert("went wrong");
-        //             }
+                    if (!response.ok) {
+                        alert("went wrong");
+                    }
 
-        //             const result = await response.json();
-        //             console.log(result); // Handle the result if needed
-        //         } catch (error) {
-        //             console.error('Error saving answer:', error);
-        //             alert('Failed to save answer.');
-        //         }
-        //     }
+                    const result = await response.json();
+                    console.log(result); // Handle the result if needed
+                } catch (error) {
+                    console.error('Error saving answer:', error);
+                    alert('Failed to save answer.');
+                }
+            }
 
-        //     // Loop through each overUnderProp
-        //     for (const prop of overUnderProps) {
-        //         let set_answer = "";
-        //         if (userChoices[prop.prop_id] && userChoices[prop.prop_id].choice) {
-        //             set_answer = userChoices[prop.prop_id]?.choice;
-        //         }
-        //         else {
-        //             set_answer = correctAnswers[prop.prop_id]
-        //         }
-        //         console.log(set_answer)
+            // Loop through each overUnderProp
+            for (const prop of overUnderProps) {
+                let set_answer = "";
+                if (userChoices[prop.prop_id] && userChoices[prop.prop_id].choice) {
+                    set_answer = userChoices[prop.prop_id]?.choice;
+                }
+                else {
+                    set_answer = correctAnswers[prop.prop_id]
+                }
+                console.log(set_answer)
 
-        //         const data = {
-        //             leagueName: leagueName,
-        //             prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
-        //             answer: set_answer, // Answer would be the selected team
-        //         };
+                const data = {
+                    leagueName: leagueName,
+                    prop_id: prop.prop_id, // Use prop's actual ID from winnerLoserProps
+                    answer: set_answer, // Answer would be the selected team
+                };
 
-        //         try {
-        //             // Send the data to your API
-        //             const response = await fetch('http://127.0.0.1:5000/set_correct_over_under_prop', {
-        //                 method: 'POST',
-        //                 headers: {
-        //                     'Content-Type': 'application/json',
-        //                 },
-        //                 body: JSON.stringify(data),
-        //             });
+                try {
+                    // Send the data to your API
+                    const response = await fetch(`${apiUrl}/set_correct_over_under_prop`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
 
-        //             if (!response.ok) {
-        //                 alert("went wrong");
-        //             }
+                    if (!response.ok) {
+                        alert("went wrong");
+                    }
 
-        //             const result = await response.json();
-        //             console.log(result); // Handle the result if needed
-        //         } catch (error) {
-        //             console.error('Error saving answer:', error);
-        //             alert('Failed to save answer.');
-        //         }
-        //     }
-        // }
+                    const result = await response.json();
+                    console.log(result); // Handle the result if needed
+                } catch (error) {
+                    console.error('Error saving answer:', error);
+                    alert('Failed to save answer.');
+                }
+            }
+        }
         async function gradeAnswers() {
             const data = {
                 game_id: gameId
@@ -163,7 +163,7 @@ const GradeGameForm = () => {
             }
         }
 
-        // await setCorrectAnswers();
+        await setCorrectAnswers();
         await gradeAnswers();
     }
 
@@ -295,7 +295,7 @@ const GradeGameForm = () => {
                                 type="radio"
                                 name={`winner_${prop.prop_id}`}
                                 value={prop.favorite_team}
-                                onChange={() => handleWinnerLoserProp(prop.prop_id, prop.favorite_team)}
+                                onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
                                 checked={userChoices[prop.prop_id]?.team === prop.favorite_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.favorite_team)}
                             />
                             {prop.favorite_team} ({prop.favorite_points})
@@ -307,7 +307,7 @@ const GradeGameForm = () => {
                                 type="radio"
                                 name={`winner_${prop.prop_id}`}
                                 value={prop.underdog_team}
-                                onChange={() => handleWinnerLoserProp(prop.prop_id, prop.underdog_team)}
+                                onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
                                 checked={userChoices[prop.prop_id]?.team === prop.underdog_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.underdog_team)}
                             />
                             {prop.underdog_team} ({prop.underdog_points})
@@ -326,7 +326,7 @@ const GradeGameForm = () => {
                                 type="radio"
                                 name={`over_under_${prop.prop_id}`}
                                 value="over"
-                                onChange={() => handleOverUnderProp(prop.prop_id, 'over')}
+                                onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
                                 checked={userChoices[prop.prop_id]?.choice === 'over' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'over')}
                             />
                             Over ({prop.over_points})
@@ -338,7 +338,7 @@ const GradeGameForm = () => {
                                 type="radio"
                                 name={`over_under_${prop.prop_id}`}
                                 value="under"
-                                onChange={() => handleOverUnderProp(prop.prop_id, 'under')}
+                                onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
                                 checked={userChoices[prop.prop_id]?.choice === 'under' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'under')}
                             />
                             Under ({prop.under_points})
