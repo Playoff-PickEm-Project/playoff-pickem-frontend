@@ -24,6 +24,25 @@ const GameFormBuilder = () => {
 
       const overUnderQuestions = [];
       const winnerLoserQuestions = [];
+      // Ensure "Over" and "Under" are added to each question when needed
+      const updatedQuestions = questions.map(item => {
+        // Check if it's an over/under question
+        if (item.field_type === 'over_under') {
+          // Check if "Over" and "Under" are already in the choices array, otherwise add them
+          const hasOver = item.choices.some(choice => choice.choice_text.toLowerCase() === 'over');
+          const hasUnder = item.choices.some(choice => choice.choice_text.toLowerCase() === 'under');
+
+          if (!hasOver) {
+            item.choices.push({ choice_text: "Over", points: 0 }); // default points to 0
+          }
+
+          if (!hasUnder) {
+            item.choices.push({ choice_text: "Under", points: 0 }); // default points to 0
+          }
+        }
+
+        return item;
+      });
 
       questions.forEach(item => {
         if (item.field_type === 'select_winner') {
@@ -31,7 +50,7 @@ const GameFormBuilder = () => {
           const sortedChoices = item.choices.sort((a, b) => a.points - b.points);
           
           winnerLoserQuestions.push({
-            question: `${item.label} (favorite is ${sortedChoices[0].choice_text})`,
+            question: item.label,
             favoritePoints: sortedChoices[0].points,
             underdogPoints: sortedChoices[1].points,
             favoriteTeam: sortedChoices[0].choice_text,
@@ -112,22 +131,22 @@ const GameFormBuilder = () => {
                 { choice_text: "Under", points: 5},
               ]
             },
-            {
-              label: "Custom Radio",
-              field_type: "custom_radio",
-              choices: [
-                { choice_text: "Option 1", points: 2 },
-                { choice_text: "Option 2", points: 3 },
-              ],
-            },
-            {
-              label: "Custom Select",
-              field_type: "custom_select",
-              choices: [
-                { choice_text: "Option A", points: 1 },
-                { choice_text: "Option B", points: 2 },
-              ],
-            },
+            // {
+            //   label: "Custom Radio",
+            //   field_type: "custom_radio",
+            //   choices: [
+            //     { choice_text: "Option 1", points: 2 },
+            //     { choice_text: "Option 2", points: 3 },
+            //   ],
+            // },
+            // {
+            //   label: "Custom Select",
+            //   field_type: "custom_select",
+            //   choices: [
+            //     { choice_text: "Option A", points: 1 },
+            //     { choice_text: "Option B", points: 2 },
+            //   ],
+            // },
           ],
         };
 
@@ -229,6 +248,34 @@ const GameFormBuilder = () => {
     }
   };
 
+  useEffect(() =>{
+    console.log(questions)
+  }, [questions])
+
+  const handleOverUnderPointsChange = (e, questionIndex, pointValue, choice) => {
+    const updatedQuestions = [...questions];
+  
+    // Find the choice corresponding to the option (Over or Under)
+    const choiceIndex = updatedQuestions[questionIndex].choices.findIndex(
+      (c) => c.choice_text.toLowerCase() === choice.toLowerCase()
+    );
+  
+    // If the choice exists, update its points
+    if (choiceIndex !== -1) {
+      updatedQuestions[questionIndex].choices[choiceIndex].points = parseFloat(e.target.value); // update points
+    } 
+    // If the choice doesn't exist, add it with the points passed as an argument
+    else {
+      updatedQuestions[questionIndex].choices.push({
+        choice_text: choice, // Add the choice (Over or Under)
+        points: parseFloat(e.target.value), // Set the points
+      });
+    }
+  
+    // Update the state with the modified questions
+    setQuestions(updatedQuestions);
+  };
+
   return (
     <div className="container mx-auto my-8 p-6 bg-white rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
@@ -304,8 +351,8 @@ const GameFormBuilder = () => {
                   <option value="">Select Field Type</option>
                   <option value="select_winner">Select Winner</option>
                   <option value="over_under">Over/Under</option>
-                  <option value="custom_radio">Custom Radio</option>
-                  <option value="custom_select">Custom Select</option>
+                  {/* <option value="custom_radio">Custom Radio</option>
+                  <option value="custom_select">Custom Select</option> */}
                 </select>
               </div>
 
@@ -337,7 +384,7 @@ const GameFormBuilder = () => {
                 </div>
               )}
 
-              {question.field_type === "custom_radio" && (
+              {/* {question.field_type === "custom_radio" && (
                 <div>
                   <h4 className="font-medium text-gray-700">Options</h4>
                   <ul className="space-y-2">
@@ -419,7 +466,7 @@ const GameFormBuilder = () => {
                     Add Option
                   </button>
                 </div>
-              )}
+              )} */}
 
               {question.field_type === "over_under" && (
                 <div>
@@ -428,14 +475,13 @@ const GameFormBuilder = () => {
                     {["Over", "Under"].map((option, optionIndex) => (
                       <li key={optionIndex} className="flex items-center space-x-4">
                         {/* Hardcoded choice text */}
-                        <span className="text-lg font-medium text-gray-700">{option}</span>
-                        
+                        <span className="text-lg font-medium text-gray-700">{option}</span>                        
                         {/* User input for points */}
                         <input
                           type="number"
                           name="points"
                           className="w-24 px-4 py-2 border border-gray-300 rounded-md"
-                          onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
+                          onChange={(e) => handleOverUnderPointsChange(e, questionIndex, optionIndex, option)}
                           min="0"
                           step="0.5" // Allows half-point values
                         />

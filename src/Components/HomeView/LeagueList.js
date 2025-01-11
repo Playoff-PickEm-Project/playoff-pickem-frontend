@@ -38,7 +38,7 @@ const LeagueList = () => {
 
   return (
     <div>
-      <div className="flex flex-wrap mt-10 p-6 gap-4">
+      <div className="flex flex-wrap mt-10 p-6 gap-4 justify-center items-center">
         {usersLeagues.map((league, index) => (
           <LeagueCard key={index} league={league} />
         ))}

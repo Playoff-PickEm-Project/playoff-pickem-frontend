@@ -10,7 +10,7 @@ const GameCard = ({ league_name, game }) => {
         </div>
         <div className="flex flex-col justify-between flex-grow">
           <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            Game Start Time: <span className="font-semibold">{game.start_time}</span>
+            Game Start Time: <span className="font-semibold">{new Date(game.start_time).toLocaleString()}</span>
           </p>
           {/* Use Link component for navigation with game name */}
           <Link

@@ -14,6 +14,35 @@ const GamePage = () => {
     const [overUnderAnswers, setOverUnderAnswers] = useState({});
     const [gameStartTime, setGameStartTime] = useState(null);
     const isGameExpired = new Date() > gameStartTime;
+    const [allPlayersAnswers, setAllPlayersAnswers] = useState([]);
+
+    useEffect(() => {
+        if (isGameExpired) {
+            async function getAnswers() {
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/view_all_answers_for_game?game_id=${gameId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+
+                    if (!response.ok) {
+                        console.log("error");
+                    }
+
+                    const data = await response.json();
+                    setAllPlayersAnswers(data);
+                    console.log(data);
+                }
+                catch (error) {
+                    console.log(error);
+                }
+            }
+
+            getAnswers();
+        }
+    }, [])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,13 +54,13 @@ const GamePage = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-    
+
                 if (!leagueResponse.ok) {
                     throw new Error(`HTTP error! status: ${leagueResponse.status}`);
                 }
-    
+
                 const leagueData = await leagueResponse.json();
-    
+
                 // Fetch user data and compare to check if they are the commissioner
                 const userResponse = await fetch(`http://127.0.0.1:5000/get_user_by_username?username=${username}`, {
                     method: 'GET',
@@ -39,26 +68,26 @@ const GamePage = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-    
+
                 if (!userResponse.ok) {
                     throw new Error(`HTTP error! status: ${userResponse.status}`);
                 }
-    
+
                 const userData = await userResponse.json();
-    
+
                 // Check if user is the commissioner
                 if (leagueData.commissioner.user_id === userData.id) {
                     setIsCommissioner(true);
                 } else {
                     // If not the commissioner, navigate away
-                    
+
                 }
             } catch (error) {
                 console.error(error); // Log the error
                 alert("Something went wrong");
             }
         };
-    
+
         fetchData();
     }, [leagueName, username, navigate]);
 
@@ -69,16 +98,16 @@ const GamePage = () => {
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
-        .then(data => {
-            setOverUnderProps(data.over_under_props);
-            setWinnerLoserProps(data.winner_loser_props);
-            setGameStartTime(new Date(data.start_time));
-        })
-        .catch(error => {
-            console.error(error);
-            alert("Something went wrong");
-        });
+            .then(response => response.json())
+            .then(data => {
+                setOverUnderProps(data.over_under_props);
+                setWinnerLoserProps(data.winner_loser_props);
+                setGameStartTime(new Date(data.start_time));
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Something went wrong");
+            });
     }, [gameId]);
 
     useEffect(() => {
@@ -88,12 +117,12 @@ const GamePage = () => {
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
-        .then(data => setWinnerLoserAnswers(data))
-        .catch(error => {
-            console.error(error);
-            alert("Something went wrong");
-        });
+            .then(response => response.json())
+            .then(data => setWinnerLoserAnswers(data))
+            .catch(error => {
+                console.error(error);
+                alert("Something went wrong");
+            });
     }, [leagueName, username]);
 
     useEffect(() => {
@@ -103,12 +132,12 @@ const GamePage = () => {
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
-        .then(data => setOverUnderAnswers(data))
-        .catch(error => {
-            console.error(error);
-            alert("Something went wrong");
-        });
+            .then(response => response.json())
+            .then(data => setOverUnderAnswers(data))
+            .catch(error => {
+                console.error(error);
+                alert("Something went wrong");
+            });
     }, [leagueName, username]);
 
     useEffect(() => {
@@ -132,18 +161,18 @@ const GamePage = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
-        .then(response => {
-            if (response.ok) {
-                // Update userChoices immediately after saving
-                setUserChoices(prevChoices => ({
-                    ...prevChoices,
-                    [prop_id]: { team: answer }
-                }));
-            } else {
-                alert("Answer was not saved");
-            }
-        })
-        .catch(error => console.log("Error saving answer"));
+            .then(response => {
+                if (response.ok) {
+                    // Update userChoices immediately after saving
+                    setUserChoices(prevChoices => ({
+                        ...prevChoices,
+                        [prop_id]: { team: answer }
+                    }));
+                } else {
+                    alert("Answer was not saved");
+                }
+            })
+            .catch(error => console.log("Error saving answer"));
     };
 
     const handleOverUnderProp = (prop_id, answer) => {
@@ -156,33 +185,37 @@ const GamePage = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
-        .then(response => {
-            if (response.ok) {
-                // Update userChoices immediately after saving
-                setUserChoices(prevChoices => ({
-                    ...prevChoices,
-                    [prop_id]: { choice: answer }
-                }));
-            } else {
-                alert("Answer was not saved");
-            }
-        })
-        .catch(error => console.log("Error saving answer"));
+            .then(response => {
+                if (response.ok) {
+                    // Update userChoices immediately after saving
+                    setUserChoices(prevChoices => ({
+                        ...prevChoices,
+                        [prop_id]: { choice: answer }
+                    }));
+                } else {
+                    alert("Answer was not saved");
+                }
+            })
+            .catch(error => console.log("Error saving answer"));
     };
 
     const handleNavigation = () => {
         navigate(`/league-home/${leagueName}/setCorrectAnswers/${gameId}`);
     };
 
+    const handleNavigationToEditGame = () => {
+        navigate(`/league-home/${leagueName}/editGame/${gameId}`);
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <h3>Game Form</h3>
-            {isGameExpired && 
+            {isGameExpired &&
                 <h3>Answers are locked!</h3>}
             {/* Render winner-loser props */}
             {winnerLoserProps.map((prop, index) => (
                 <div key={index}>
-                    <h4>{prop.question}</h4>
+                    <h4 className='font-bold'>{prop.question}</h4>
                     <div>
                         <label>
                             <input
@@ -215,7 +248,7 @@ const GamePage = () => {
             {/* Render over-under props */}
             {overUnderProps.map((prop, index) => (
                 <div key={index}>
-                    <h4>{prop.question}</h4>
+                    <h4 className='font-bold'>{prop.question}</h4>
                     <div>
                         <label>
                             <input
@@ -245,9 +278,47 @@ const GamePage = () => {
                 </div>
             ))}
 
-            {isCommissioner && <button onClick={() => handleNavigation(gameId)} class="bg-green-600 hover:bg-green-700">
-                Grade All Answers
+            {isCommissioner && !isGameExpired && <button onClick={() => handleNavigationToEditGame(gameId)} class="bg-yellow-600 hover:bg-yellow-700">
+                Edit Game
             </button>}
+
+            {isCommissioner && <button onClick={() => handleNavigation(gameId)} class="bg-green-600 hover:bg-green-700">
+                Grade Game
+            </button>}
+
+            
+            {isGameExpired &&
+                Object.entries(
+                    allPlayersAnswers.reduce((acc, answer) => {
+                        // Group answers by the question
+                        if (!acc[answer.question]) {
+                            acc[answer.question] = [];
+                        }
+                        acc[answer.question].push(answer);
+                        return acc;
+                    }, {})
+                ).map(([question, answers], index) => (
+                    <div key={index} className="mb-4">
+                        <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="px-4 py-2 text-sm font-semibold text-gray-600">Player Name</th>
+                                    <th className="px-4 py-2 text-sm font-semibold text-gray-600">{question}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {answers.map((answer, answerIndex) => (
+                                    <tr key={answerIndex} className="border-t border-gray-200">
+                                        <td className="px-4 py-2 text-sm text-gray-700">{answer.player_name}</td>
+                                        {answer.correct_answer === null && <td className="px-4 py-2 text-sm text-gray-700">{answer.answer}</td>}
+                                        {answer.correct_answer === answer.answer && <td className="px-4 py-2 text-sm text-gray-700 bg-green-500">{answer.answer}</td>}
+                                        {answer.correct_answer !== answer.answer && answer.correct_answer !== null && <td className="px-4 py-2 text-sm text-gray-700 bg-red-500">{answer.answer}</td>}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ))}
         </div>
     );
 };
