@@ -3,12 +3,7 @@ import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import { getUsername } from "../../App";
 
 // Header component, can access all different pages from here
-const Header = ({  }) => {
-
-  const getAuthorized = () => {
-    const authorizedValue = localStorage.getItem("authorized");
-    return authorizedValue; // returns the value or null if not found
-  };
+const Header = ({ authorized, setAuthorized }) => {
 
   const location = useLocation();
   const username = getUsername();
@@ -17,10 +12,6 @@ const Header = ({  }) => {
   const [league, setLeague] = useState({});
   const [userID, setUserID] = useState(null);
   const [isCommissioner, setIsCommissioner] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
-  useEffect(() => {
-    setAuthorized(getAuthorized())
-  }, [])
     
   useEffect(() => {
     const fetchData = async () => {
@@ -96,7 +87,6 @@ const Header = ({  }) => {
     setAuthorized(false); // Update state to unauthorized
     localStorage.setItem("authorized", "false"); // Save to local storage
     localStorage.removeItem("username");
-
   };
 
   // Function to handle logout or unauthorized state
@@ -138,7 +128,7 @@ const Header = ({  }) => {
     <div className="flex justify-between items-center h-20">
       <div>
         <Link to="/" className="text-3xl md:text-4xl font-bold">
-          Playoff Pick'em League
+          Playoff Pick'em
         </Link>
       </div>
       <ul className="flex">
@@ -148,7 +138,7 @@ const Header = ({  }) => {
               to={`/league-home/${location.pathname.split("/")[2]}`} // Dynamic league home path
               className="navbar"
             >
-              League Home
+              Home
             </Link>
             <Link
               to={`/league-home/${location.pathname.split("/")[2]}/viewGames`} // Dynamic games path

@@ -70,17 +70,8 @@ const LeagueHome = () => {
 
   return (
     <div>
-        <h1>Welcome to {leagueName}</h1>
+        <h1 style={{marginTop: "10px"}}>Welcome to {leagueName}</h1>
         <Leaderboard />
-        <Games />
-
-        <Link to={`/league-home/${leagueName}/viewGames`} className='text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800'>
-          View Games
-        </Link>
-
-        {isCommissioner && <button onClick={handleNavigateLM}>
-          League Manager Tools
-        </button>}
     </div>
   );
 };

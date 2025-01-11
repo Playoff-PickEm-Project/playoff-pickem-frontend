@@ -10,12 +10,12 @@ const LeagueCard = ({ league }) => {
         </div>
         <div className="flex flex-col justify-between flex-grow">
           <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            Members: 
-            {league.league_players.map((player, index) => (
-               <li key={index}>{player.name}</li>
-            ))}
+            Commissioner: {league.commissioner.name}
           </p>
           <p className="leading-relaxed text-base text-white dark:text-gray-300">
+            # of Players: {league.league_players.length}
+          </p>
+          <p style={{marginTop: "10px"}} className="leading-relaxed text-base text-white dark:text-gray-300">
             Join Code: <span className="font-semibold">{league.join_code}</span>
           </p>
           {/* Use Link component for navigation with league name */}

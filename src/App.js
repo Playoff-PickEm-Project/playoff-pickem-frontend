@@ -16,6 +16,7 @@ import GradeGameForm from './Components/GradeGameForm';
 import LMToolsHome from './Components/LMTools/LMToolsHome';
 import GamePage from './Components/HomeView/GamePage';
 import GameList from './Components/HomeView/GameList';
+import EditGameForm from './Components/EditGameForm';
 
 export const getUsername = () => {
   return localStorage.getItem('username')
@@ -44,7 +45,7 @@ export default function App() {
   return (
     <div className="App">
       {/* Need to change to only on leaguelist view */}
-      <Header setAuthorized={setAuthorized}/>
+      <Header authorized={authorized} setAuthorized={setAuthorized}/>
       <Routes>
         {/* Render LoginPage or RegisterPage if not logged in */}
         {!authorized ? (
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="/league-home/:leagueName/viewGames" element={authorized ? <GameList /> : <Navigate to="/" />} />
         <Route path="/league-home/:leagueName/viewGames/:gameId" element={authorized ? <GamePage /> : <Navigate to="/" />} />
         <Route path="/league-home/:leagueName/setCorrectAnswers/:gameId" element={authorized ? <GradeGameForm /> : <Navigate to="/" />} />
+        <Route path="/league-home/:leagueName/editGame/:gameId" element={authorized ? <EditGameForm /> : <Navigate to="/" />} />
 
 
         <Route path="/league-home/:leagueName/league_manager_tools" element={authorized ? <LMToolsHome /> : <Navigate to="/" />} />
