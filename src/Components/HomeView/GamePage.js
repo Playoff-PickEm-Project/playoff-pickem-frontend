@@ -220,75 +220,97 @@ const GamePage = () => {
     };
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h3>Game Form</h3>
-            {isGameExpired &&
-                <h3>Answers are locked!</h3>}
-            {/* Render winner-loser props */}
-            {winnerLoserProps.map((prop, index) => (
-                <div key={index}>
-                    <h4 className='font-bold'>{prop.question}</h4>
-                    <div>
-                        <label>
-                            <input
-                                type="radio"
-                                name={`game_${gameId}_winner_${index}`}
-                                value={prop.favorite_team}
-                                onChange={() => handleWinnerLoserProp(prop.prop_id, prop.favorite_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.favorite_team}
-                                disabled={isGameExpired}
-                            />
-                            {prop.favorite_team} ({prop.favorite_points})
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            <input
-                                type="radio"
-                                name={`game_${gameId}_winner_${index}`}
-                                value={prop.underdog_team}
-                                onChange={() => handleWinnerLoserProp(prop.prop_id, prop.underdog_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.underdog_team}
-                                disabled={isGameExpired}
-                            />
-                            {prop.underdog_team} ({prop.underdog_points})
-                        </label>
-                    </div>
-                </div>
-            ))}
+        <div className="p-6 max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">Game Form</h3>
 
-            {/* Render over-under props */}
-            {overUnderProps.map((prop, index) => (
-                <div key={index}>
-                    <h4 className='font-bold'>{prop.question}</h4>
-                    <div>
-                        <label>
-                            <input
-                                type="radio"
-                                name={`game_${gameId}_over_under_${index}`}
-                                value="over"
-                                onChange={() => handleOverUnderProp(prop.prop_id, 'over')}
-                                checked={userChoices[prop.prop_id]?.choice === 'over'}
-                                disabled={isGameExpired}
-                            />
-                            Over ({prop.over_points})
-                        </label>
-                    </div>
-                    <div>
-                        <label>
-                            <input
-                                type="radio"
-                                name={`game_${gameId}_over_under_${index}`}
-                                value="under"
-                                onChange={() => handleOverUnderProp(prop.prop_id, 'under')}
-                                checked={userChoices[prop.prop_id]?.choice === 'under'}
-                                disabled={isGameExpired}
-                            />
-                            Under ({prop.under_points})
-                        </label>
-                    </div>
+            {isGameExpired && (
+                <div className="bg-red-100 text-red-600 p-4 rounded-md mb-4">
+                    <h3 className="text-lg font-semibold">Answers are locked!</h3>
                 </div>
-            ))}
+            )}
+
+            <div className="flex flex-col items-center space-y-8">
+                {/* Render Winner-Loser Props */}
+                {winnerLoserProps.map((prop, index) => (
+                    <div
+                        key={prop.prop_id}
+                        className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    >
+                        <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
+                            {prop.question}
+                        </h4>
+                        <div className="flex flex-col space-y-4">
+                            <label className="flex items-center space-x-3">
+                                <input
+                                    type="radio"
+                                    name={`game_${gameId}_winner_${index}`}
+                                    value={prop.favorite_team}
+                                    onChange={() => handleWinnerLoserProp(prop.prop_id, prop.favorite_team)}
+                                    checked={userChoices[prop.prop_id]?.team === prop.favorite_team}
+                                    disabled={isGameExpired}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-gray-700">
+                                    {prop.favorite_team} ({prop.favorite_points})
+                                </span>
+                            </label>
+                            <label className="flex items-center space-x-3">
+                                <input
+                                    type="radio"
+                                    name={`game_${gameId}_winner_${index}`}
+                                    value={prop.underdog_team}
+                                    onChange={() => handleWinnerLoserProp(prop.prop_id, prop.underdog_team)}
+                                    checked={userChoices[prop.prop_id]?.team === prop.underdog_team}
+                                    disabled={isGameExpired}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-gray-700">
+                                    {prop.underdog_team} ({prop.underdog_points})
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                ))}
+
+                {/* Render Over-Under Props */}
+                {overUnderProps.map((prop, index) => (
+                    <div
+                        key={prop.prop_id}
+                        className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    >
+                        <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
+                            {prop.question}
+                        </h4>
+                        <div className="flex flex-col space-y-4">
+                            <label className="flex items-center space-x-3">
+                                <input
+                                    type="radio"
+                                    name={`game_${gameId}_over_under_${index}`}
+                                    value="over"
+                                    onChange={() => handleOverUnderProp(prop.prop_id, 'over')}
+                                    checked={userChoices[prop.prop_id]?.choice === 'over'}
+                                    disabled={isGameExpired}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-gray-700">Over ({prop.over_points})</span>
+                            </label>
+                            <label className="flex items-center space-x-3">
+                                <input
+                                    type="radio"
+                                    name={`game_${gameId}_over_under_${index}`}
+                                    value="under"
+                                    onChange={() => handleOverUnderProp(prop.prop_id, 'under')}
+                                    checked={userChoices[prop.prop_id]?.choice === 'under'}
+                                    disabled={isGameExpired}
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                />
+                                <span className="text-gray-700">Under ({prop.under_points})</span>
+                            </label>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
 
             {isCommissioner && !isGameExpired && <button onClick={() => handleNavigationToEditGame(gameId)} class="bg-yellow-600 hover:bg-yellow-700">
                 Edit Game
