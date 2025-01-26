@@ -7,6 +7,7 @@ const GradeGameForm = () => {
     const { gameId } = useParams();
     const [overUnderProps, setOverUnderProps] = useState([]);
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
+    const [variableOptionProps, setVariableOptionProps] = useState([]);
     const [userChoices, setUserChoices] = useState({});
     const [isCommissioner, setIsCommissioner] = useState(false);
     const [correctAnswers, setCorrectAnswers] = useState([]);
@@ -138,7 +139,59 @@ const GradeGameForm = () => {
                     alert('Failed to save answer.');
                 }
             }
+
+            for (const prop of variableOptionProps) {
+                let selectedAnswersForProp = [];
+
+                // Check if user has any choices for this prop
+                const userChoice = userChoices[prop.prop_id];
+
+                // If user has choices, loop through and collect selected answers
+                if (userChoice && userChoice.choices) {
+                    // Assuming userChoice.choices is an array of answers (e.g., ['over', 'under'])
+                    selectedAnswersForProp = [...userChoice.choices];
+                }
+
+                // Now loop through the options to ensure we add the correct answers (if necessary)
+                prop.options.forEach((option) => {
+                    // If the correct answer matches one of the options and it's not already in the array, add it
+                    if (correctAnswers[prop.prop_id] === option.answer_choice && !selectedAnswersForProp.includes(option.answer_choice)) {
+                        selectedAnswersForProp.push(option.answer_choice);
+                    }
+                });
+
+                console.log("Selected answers for prop_id", prop.prop_id, ":", selectedAnswersForProp);
+
+                // Set the answer(s) for the prop
+                const data = {
+                    leagueName: leagueName,
+                    prop_id: prop.prop_id, // Prop's actual ID
+                    answers: selectedAnswersForProp, // Array of selected answers
+                };
+
+                try {
+                    // Send the data to your API for this prop_id
+                    const response = await fetch(`${apiUrl}/set_correct_variable_option_prop`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                        alert("Something went wrong while saving answer for prop_id: " + prop.prop_id);
+                    }
+
+                    const result = await response.json();
+                    console.log(result); // Handle the result if needed
+                } catch (error) {
+                    console.error('Error saving answer for prop_id:', prop.prop_id, error);
+                    alert('Failed to save answer for prop_id: ' + prop.prop_id);
+                }
+            }
         }
+
         async function gradeAnswers() {
             const data = {
                 game_id: gameId
@@ -185,6 +238,7 @@ const GradeGameForm = () => {
             console.log(data);
             setOverUnderProps(data.over_under_props);
             setWinnerLoserProps(data.winner_loser_props);
+            setVariableOptionProps(data.variable_option_props);
         }).catch((error) => {
             console.error(error); // Log the error
             alert("Something went wrong");
@@ -207,11 +261,19 @@ const GradeGameForm = () => {
 
                 const data = await response.json();
                 const answersMap = data.reduce((acc, { prop_id, correct_answer }) => {
-                    acc[prop_id] = correct_answer;
+                    // If the current prop_id doesn't exist yet in acc, initialize it as an empty array
+                    if (!acc[prop_id]) {
+                        acc[prop_id] = [];
+                    }
+
+                    // Add the current correct_answer to the array for that prop_id
+                    acc[prop_id].push(correct_answer);
+
                     return acc;
                 }, {});
-                setCorrectAnswers(answersMap)
-                console.log(data)
+
+                setCorrectAnswers(answersMap);
+                console.log(answersMap);
             }
             catch (error) {
                 console.log(error);
@@ -282,6 +344,24 @@ const GradeGameForm = () => {
             .catch(error => console.log("Error saving answer"));
     };
 
+    const handleMultipleChoiceChange = (propId, answerChoice, isChecked) => {
+        setUserChoices((prevChoices) => {
+            const currentChoices = prevChoices[propId]?.choices || [];
+
+            const updatedChoices = isChecked
+                ? [...currentChoices, answerChoice]
+                : currentChoices.filter((choice) => choice !== answerChoice);
+
+            return {
+                ...prevChoices,
+                [propId]: {
+                    ...prevChoices[propId],
+                    choices: updatedChoices,
+                },
+            };
+        });
+    };
+
     return (
         <div>
             <h1>Grade the Game!</h1>
@@ -297,7 +377,10 @@ const GradeGameForm = () => {
                                 name={`winner_${prop.prop_id}`}
                                 value={prop.favorite_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.favorite_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.favorite_team)}
+                                checked={
+                                    (userChoices[prop.prop_id]?.team?.includes(prop.favorite_team)) || 
+                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes(prop.favorite_team))
+                                }
                             />
                             {prop.favorite_team} ({prop.favorite_points})
                         </label>
@@ -309,7 +392,10 @@ const GradeGameForm = () => {
                                 name={`winner_${prop.prop_id}`}
                                 value={prop.underdog_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
-                                checked={userChoices[prop.prop_id]?.team === prop.underdog_team || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === prop.underdog_team)}
+                                checked={
+                                    (userChoices[prop.prop_id]?.team?.includes(prop.underdog_team)) || 
+                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes(prop.underdog_team))
+                                }
                             />
                             {prop.underdog_team} ({prop.underdog_points})
                         </label>
@@ -328,7 +414,10 @@ const GradeGameForm = () => {
                                 name={`over_under_${prop.prop_id}`}
                                 value="over"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
-                                checked={userChoices[prop.prop_id]?.choice === 'over' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'over')}
+                                checked={
+                                    (userChoices[prop.prop_id]?.choice?.includes('over')) || 
+                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes('over'))
+                                }
                             />
                             Over ({prop.over_points})
                         </label>
@@ -340,13 +429,70 @@ const GradeGameForm = () => {
                                 name={`over_under_${prop.prop_id}`}
                                 value="under"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
-                                checked={userChoices[prop.prop_id]?.choice === 'under' || (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id] === 'under')}
+                                checked={
+                                    (userChoices[prop.prop_id]?.choice?.includes('under')) || 
+                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes('under'))
+                                }
                             />
                             Under ({prop.under_points})
                         </label>
                     </div>
                 </div>
             ))}
+
+            {/* Render Variable Option Props */}
+            {variableOptionProps && variableOptionProps.map((prop) => {
+                // Normalize the correct answers for this prop
+                const correctAnswersForProp = Array.isArray(correctAnswers[prop.prop_id])
+                    ? correctAnswers[prop.prop_id]  // Multiple correct answers
+                    : [correctAnswers[prop.prop_id]]; // Single correct answer (make it an array)
+
+                // Handle checkbox change for multiple choices
+                const handleCheckboxChange = (e, option) => {
+                    const isChecked = e.target.checked;
+
+                    // Update user choices
+                    handleMultipleChoiceChange(
+                        prop.prop_id,
+                        option.answer_choice,
+                        isChecked
+                    );
+                };
+
+                return (
+                    <div key={prop.prop_id} style={{ marginBottom: '16px' }}>
+                        <h4 style={{ fontSize: '18px' }} className="font-bold">{prop.question}</h4>
+                        <div>
+                            {prop.options && prop.options.map((option) => {
+                                // Check if this option is correct
+                                const isCorrectAnswer = correctAnswersForProp.includes(option.answer_choice);
+
+                                // Check if the option is selected by the user
+                                const isSelectedByUser = userChoices[prop.prop_id]?.choices?.includes(option.answer_choice);
+
+                                // The checkbox is checked if it's selected by the user or if it's a correct answer
+                                const isChecked = isSelectedByUser || isCorrectAnswer;
+
+                                return (
+                                    <label key={option.answer_choice}>
+                                        <input
+                                            type="checkbox"
+                                            name={`variable_option_${prop.prop_id}`}
+                                            value={option.answer_choice}
+                                            onChange={(e) => handleCheckboxChange(e, option)}
+                                            checked={isChecked}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <span>{option.answer_choice} ({option.answer_points})</span>
+                                        <br />
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+
 
             <button onClick={handleSetCorrectAnswers}>
                 Grade Answers

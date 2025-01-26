@@ -25,6 +25,7 @@ const GameFormBuilder = () => {
 
       const overUnderQuestions = [];
       const winnerLoserQuestions = [];
+      const variableOptionQuestions = [];
       // Ensure "Over" and "Under" are added to each question when needed
       const updatedQuestions = questions.map(item => {
         // Check if it's an over/under question
@@ -69,17 +70,26 @@ const GameFormBuilder = () => {
             underPoints: underChoice.points
           });
         }
+
+        if (item.field_type === 'custom_select') {
+          variableOptionQuestions.push({
+            question: item.label,
+            options: item.choices,
+          });
+        }
       });
 
       console.log(overUnderQuestions);
       console.log(winnerLoserQuestions);
+      console.log(variableOptionQuestions);
 
       const data = {
         leagueName: leagueName,
         gameName: formName,
         date: gameStartDate.toISOString(),
         winnerLoserQuestions: winnerLoserQuestions,
-        overUnderQuestions: overUnderQuestions
+        overUnderQuestions: overUnderQuestions,
+        variableOptionQuestions: variableOptionQuestions
       }
 
       try {
@@ -133,22 +143,22 @@ const GameFormBuilder = () => {
                 { choice_text: "Under", points: 5},
               ]
             },
-            // {
-            //   label: "Custom Radio",
-            //   field_type: "custom_radio",
-            //   choices: [
-            //     { choice_text: "Option 1", points: 2 },
-            //     { choice_text: "Option 2", points: 3 },
-            //   ],
-            // },
-            // {
-            //   label: "Custom Select",
-            //   field_type: "custom_select",
-            //   choices: [
-            //     { choice_text: "Option A", points: 1 },
-            //     { choice_text: "Option B", points: 2 },
-            //   ],
-            // },
+            {
+              label: "Custom Radio",
+              field_type: "custom_radio",
+              choices: [
+                { choice_text: "Option 1", points: 2 },
+                { choice_text: "Option 2", points: 3 },
+              ],
+            },
+            {
+              label: "Custom Select",
+              field_type: "custom_select",
+              choices: [
+                { choice_text: "Option A", points: 1 },
+                { choice_text: "Option B", points: 2 },
+              ],
+            },
           ],
         };
 
@@ -353,8 +363,8 @@ const GameFormBuilder = () => {
                   <option value="">Select Field Type</option>
                   <option value="select_winner">Select Winner</option>
                   <option value="over_under">Over/Under</option>
-                  {/* <option value="custom_radio">Custom Radio</option>
-                  <option value="custom_select">Custom Select</option> */}
+                  {/* <option value="custom_radio">Custom Radio</option> */}
+                  <option value="custom_select">Custom Select</option>
                 </select>
               </div>
 
@@ -386,7 +396,7 @@ const GameFormBuilder = () => {
                 </div>
               )}
 
-              {/* {question.field_type === "custom_radio" && (
+              {question.field_type === "custom_radio" && (
                 <div>
                   <h4 className="font-medium text-gray-700">Options</h4>
                   <ul className="space-y-2">
@@ -468,7 +478,7 @@ const GameFormBuilder = () => {
                     Add Option
                   </button>
                 </div>
-              )} */}
+              )}
 
               {question.field_type === "over_under" && (
                 <div>

@@ -6,12 +6,14 @@ const GamePage = () => {
     const { leagueName, gameId } = useParams();
     const [overUnderProps, setOverUnderProps] = useState([]);
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
+    const [variableOptionProps, setVariableOptionProps] = useState([]);
     const [userChoices, setUserChoices] = useState({});
     const [isCommissioner, setIsCommissioner] = useState(false);
     const navigate = useNavigate();
     const username = getUsername();
     const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({});
     const [overUnderAnswers, setOverUnderAnswers] = useState({});
+    const [variableOptionAnswers, setVariableOptionAnswers] = useState({});
     const [gameStartTime, setGameStartTime] = useState(null);
     const isGameExpired = new Date() > gameStartTime;
     const [allPlayersAnswers, setAllPlayersAnswers] = useState([]);
@@ -114,7 +116,9 @@ const GamePage = () => {
             .then(data => {
                 setOverUnderProps(data.over_under_props);
                 setWinnerLoserProps(data.winner_loser_props);
+                setVariableOptionProps(data.variable_option_props);
                 setGameStartTime(new Date(data.start_time));
+                console.log(data)
             })
             .catch(error => {
                 console.error(error);
@@ -153,6 +157,21 @@ const GamePage = () => {
     }, [leagueName, username]);
 
     useEffect(() => {
+        fetch(`${apiUrl}/retrieve_variable_option_answers?leagueName=${leagueName}&username=${username}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => setVariableOptionAnswers(data))
+            .catch(error => {
+                console.error(error);
+                alert("Something went wrong");
+            });
+    }, [leagueName, username]);
+
+    useEffect(() => {
         const updatedChoices = {};
         for (const [propId, team] of Object.entries(winnerLoserAnswers)) {
             updatedChoices[propId] = { team };
@@ -160,8 +179,18 @@ const GamePage = () => {
         for (const [propId, choice] of Object.entries(overUnderAnswers)) {
             updatedChoices[propId] = { ...updatedChoices[propId], choice };
         }
+        // Add variable option answers
+        for (const [propId, option] of Object.entries(variableOptionAnswers)) {
+            updatedChoices[propId] = { ...updatedChoices[propId], option };
+        }
+
+        console.log("Winner Loser Answers:", winnerLoserAnswers);
+        console.log("Over Under Answers:", overUnderAnswers);
+        console.log("Variable Option Answers:", variableOptionAnswers);
+
         setUserChoices(updatedChoices);
-    }, [winnerLoserAnswers, overUnderAnswers]);
+        console.log(updatedChoices)
+    }, [winnerLoserAnswers, overUnderAnswers, variableOptionAnswers]);
 
     const handleWinnerLoserProp = (prop_id, answer) => {
         if (isGameExpired) {
@@ -203,6 +232,30 @@ const GamePage = () => {
                     setUserChoices(prevChoices => ({
                         ...prevChoices,
                         [prop_id]: { choice: answer }
+                    }));
+                } else {
+                    alert("Answer was not saved");
+                }
+            })
+            .catch(error => console.log("Error saving answer"));
+    };
+
+    const handleVariableOptionProp = (prop_id, answer) => {
+        if (isGameExpired) {
+            return;
+        }
+        const data = { leagueName, username, prop_id, answer };
+        fetch(`${apiUrl}/answer_variable_option_prop`, {        // NEED TO CREATE THIS ENDPOINT
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    // Update userChoices immediately after saving
+                    setUserChoices(prevChoices => ({
+                        ...prevChoices,
+                        [prop_id]: { option: answer },
                     }));
                 } else {
                     alert("Answer was not saved");
@@ -278,6 +331,7 @@ const GamePage = () => {
                         key={prop.prop_id}
                         className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
                     >
+                        {console.log(prop)}
                         <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
                             {prop.question}
                         </h4>
@@ -306,6 +360,35 @@ const GamePage = () => {
                                 />
                                 <span className="text-gray-700">Under ({prop.under_points})</span>
                             </label>
+                        </div>
+                    </div>
+                ))}
+
+                {variableOptionProps.map((prop, index) => (
+                    <div
+                        key={index}
+                        className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    >
+                        <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
+                            {prop.question}
+                        </h4>
+                        <div className="flex flex-col space-y-4">
+                            {prop.options.map((option, idx) => (
+                                <label key={idx} className="flex items-center space-x-3">
+                                    <input
+                                        type="radio"
+                                        name={`game_${gameId}_variable_option_${index}`}
+                                        value={option.answer_choice} // Use the answer choice as the value
+                                        onChange={() => handleVariableOptionProp(prop.prop_id, option.answer_choice)}
+                                        checked={userChoices[prop.prop_id]?.option === option.answer_choice}
+                                        disabled={isGameExpired}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="text-gray-700">
+                                        {option.answer_choice} ({option.answer_points})
+                                    </span>
+                                </label>
+                            ))}
                         </div>
                     </div>
                 ))}
@@ -341,12 +424,21 @@ const GamePage = () => {
                                 </tr>
                             </thead>
                             <tbody>
+                                {console.log(answers)}
                                 {answers.map((answer, answerIndex) => (
                                     <tr key={answerIndex} className="border-t border-gray-200">
                                         <td className="px-4 py-2 text-sm text-gray-700">{answer.player_name}</td>
-                                        {answer.correct_answer === null && <td className="px-4 py-2 text-sm text-gray-700">{answer.answer}</td>}
-                                        {answer.correct_answer === answer.answer && <td className="px-4 py-2 text-sm text-gray-700 bg-green-500">{answer.answer}</td>}
-                                        {answer.correct_answer !== answer.answer && answer.correct_answer !== null && <td className="px-4 py-2 text-sm text-gray-700 bg-red-500">{answer.answer}</td>}
+                                        {answer.correct_answer === null && (
+                                            <td className="px-4 py-2 text-sm text-gray-700">{answer.answer}</td>
+                                        )}
+                                        {(Array.isArray(answer.correct_answer) && answer.correct_answer.includes(answer.answer)) ||
+                                            (answer.correct_answer === answer.answer) ? (
+                                            <td className="px-4 py-2 text-sm text-gray-700 bg-green-500">{answer.answer}</td>
+                                        ) : (
+                                            answer.correct_answer !== null && (
+                                                <td className="px-4 py-2 text-sm text-gray-700 bg-red-500">{answer.answer}</td>
+                                            )
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>
