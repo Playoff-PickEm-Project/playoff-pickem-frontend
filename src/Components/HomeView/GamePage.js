@@ -373,22 +373,25 @@ const GamePage = () => {
                             {prop.question}
                         </h4>
                         <div className="flex flex-col space-y-4">
-                            {prop.options.map((option, idx) => (
-                                <label key={idx} className="flex items-center space-x-3">
-                                    <input
-                                        type="radio"
-                                        name={`game_${gameId}_variable_option_${index}`}
-                                        value={option.answer_choice} // Use the answer choice as the value
-                                        onChange={() => handleVariableOptionProp(prop.prop_id, option.answer_choice)}
-                                        checked={userChoices[prop.prop_id]?.option === option.answer_choice}
-                                        disabled={isGameExpired}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                    />
-                                    <span className="text-gray-700">
-                                        {option.answer_choice} ({option.answer_points})
-                                    </span>
-                                </label>
-                            ))}
+                            {prop.options
+                                .slice() // Create a shallow copy to avoid mutating the original array
+                                .sort((a, b) => a.answer_points - b.answer_points) // Sort by answer_points (ascending)
+                                .map((option, idx) => (
+                                    <label key={idx} className="flex items-center space-x-3">
+                                        <input
+                                            type="radio"
+                                            name={`game_${gameId}_variable_option_${index}`}
+                                            value={option.answer_choice} // Use the answer choice as the value
+                                            onChange={() => handleVariableOptionProp(prop.prop_id, option.answer_choice)}
+                                            checked={userChoices[prop.prop_id]?.option === option.answer_choice}
+                                            disabled={isGameExpired}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <span className="text-gray-700">
+                                            {option.answer_choice} ({option.answer_points})
+                                        </span>
+                                    </label>
+                                ))}
                         </div>
                     </div>
                 ))}
