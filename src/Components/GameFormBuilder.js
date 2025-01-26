@@ -458,7 +458,7 @@ const GameFormBuilder = () => {
                           onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
                           className="w-24 px-4 py-2 border border-gray-300 rounded-md"
                           min="0"
-                          step="0.1" // Allows half-point values
+                          step="0.5" // Allows half-point values
                         />
                         <button
                           type="button"
