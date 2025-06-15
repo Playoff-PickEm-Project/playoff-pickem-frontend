@@ -40,7 +40,7 @@ const Leaderboard = () => {
 
   return (
     <div className="leaderboard flex flex-col items-center">
-      <h1 className="text-3xl font-bold text-center mb-4">Leaderboard</h1>
+      <h1 className="text-3xl font-bold text-center mb-4 text-emerald-400">Leaderboard</h1>
       <User data={playerStandings} />
     </div>
   );

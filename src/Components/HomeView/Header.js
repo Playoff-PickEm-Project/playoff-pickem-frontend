@@ -126,10 +126,10 @@ const Header = ({ authorized, setAuthorized }) => {
   const isInsideLeague = location.pathname.startsWith("/league-home/");
 
   return (
-    <div className="flex justify-between items-center h-20">
-      <div>
-        <Link to="/" className="text-3xl md:text-4xl font-bold">
-          Playoff Pick'em
+    <div className="flex justify-between items-center h-20 bg-emerald-600">
+      <div className="ml-4">
+        <Link to="/" className="text-3xl md:text-4xl font-bold text-white">
+          SquadPicks
         </Link>
       </div>
       <ul className="flex">

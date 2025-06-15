@@ -70,8 +70,8 @@ const LeagueHome = () => {
   };
 
   return (
-    <div>
-        <h1 style={{marginTop: "10px"}}>Welcome to {leagueName}</h1>
+    <div className="min-h-screen bg-zinc-900 px-4 py-6">
+        <h1 className="text-white" style={{marginTop: "10px"}}>Welcome to {leagueName}</h1>
         <Leaderboard />
     </div>
   );

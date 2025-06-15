@@ -3,8 +3,8 @@ import { Link } from "react-router-dom"; // Import Link for navigation
 
 const LeagueCard = ({ league }) => {
   return (
-    <div className="p-4 max-w-sm">
-      <div className="flex rounded-lg h-full dark:bg-gray-800 bg-teal-400 p-8 flex-col">
+    <div className="p-4 w-full sm:max-w-sm">
+      <div className="flex rounded-lg h-full bg-zinc-700 p-8 flex-col">
         <div className="flex items-center mb-3">
           <h2 className="text-white dark:text-white text-lg font-medium">{league.league_name}</h2>
         </div>
@@ -16,12 +16,12 @@ const LeagueCard = ({ league }) => {
             # of Players: {league.league_players.length}
           </p>
           <p style={{marginTop: "10px"}} className="leading-relaxed text-base text-white dark:text-gray-300">
-            Join Code: <span className="font-semibold">{league.join_code}</span>
+            Join Code: <span className="font-semibold text-emerald-600">{league.join_code}</span>
           </p>
           {/* Use Link component for navigation with league name */}
           <Link
             to={`/league-home/${league.league_name}`}  // Pass the league's name to the path
-            className="mt-3 text-black dark:text-white hover:text-blue-600 inline-flex items-center"
+            className="mt-3 text-black dark:text-white hover:text-emerald-600 inline-flex items-center"
           >
             View League
             <svg
