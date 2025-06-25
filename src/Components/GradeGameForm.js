@@ -66,11 +66,11 @@ const GradeGameForm = () => {
             // Loop through each winnerLoserProp
             for (const prop of winnerLoserProps) {
                 let set_answer = "";
-                if (userChoices[prop.prop_id]) {
+                if (userChoices[prop.prop_id] != null) {
                     set_answer = userChoices[prop.prop_id]?.team;
                 }
                 else {
-                    set_answer = correctAnswers[prop.prop_id]
+                    set_answer = correctAnswers[prop.prop_id][0]
                 }
 
                 const data = {
@@ -108,7 +108,7 @@ const GradeGameForm = () => {
                     set_answer = userChoices[prop.prop_id]?.choice;
                 }
                 else {
-                    set_answer = correctAnswers[prop.prop_id]
+                    set_answer = correctAnswers[prop.prop_id][0]
                 }
                 console.log(set_answer)
 
@@ -151,6 +151,8 @@ const GradeGameForm = () => {
                     // Assuming userChoice.choices is an array of answers (e.g., ['over', 'under'])
                     selectedAnswersForProp = [...userChoice.choices];
                 }
+
+								console.log("After step 2: ", selectedAnswersForProp)
 
                 // Now loop through the options to ensure we add the correct answers (if necessary)
                 prop.options.forEach((option) => {
@@ -283,6 +285,30 @@ const GradeGameForm = () => {
         getSavedAnswers();
     }, [])
 
+		useEffect(() => {
+			const initChoicesFromCorrect = () => {
+					const newChoices = {};
+	
+					for (const prop of variableOptionProps) {
+							const correct = correctAnswers[prop.prop_id];
+							if (correct) {
+									newChoices[prop.prop_id] = {
+											choices: Array.isArray(correct) ? correct : [correct]
+									};
+							}
+					}
+	
+					setUserChoices((prev) => ({
+							...newChoices,  // overrides only if not already set
+							...prev
+					}));
+			};
+	
+			if (variableOptionProps.length && Object.keys(userChoices).length === 0) {
+					initChoicesFromCorrect();
+			}
+	}, [variableOptionProps, correctAnswers]);
+
     const handleChoiceChange = (propId, type, value) => {
         setUserChoices((prev) => ({
             ...prev,
@@ -363,7 +389,7 @@ const GradeGameForm = () => {
     };
 
     return (
-        <div>
+        <div className='text-white'>
             <h1>Grade the Game!</h1>
 
             {/* Render Winner Loser Props */}
@@ -471,7 +497,12 @@ const GradeGameForm = () => {
                                 const isSelectedByUser = userChoices[prop.prop_id]?.choices?.includes(option.answer_choice);
 
                                 // The checkbox is checked if it's selected by the user or if it's a correct answer
-                                const isChecked = isSelectedByUser || isCorrectAnswer;
+                                // const isChecked = isSelectedByUser || isCorrectAnswer;
+																// const hasUserSelected = prop.prop_id in userChoices;
+																// const isChecked = hasUserSelected
+																// 		? isSelectedByUser
+																// 		: isCorrectAnswer;
+																const isChecked = userChoices[prop.prop_id]?.choices?.includes(option.answer_choice) || false;
 
                                 return (
                                     <label key={option.answer_choice}>
