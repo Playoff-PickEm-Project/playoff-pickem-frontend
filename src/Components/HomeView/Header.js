@@ -129,7 +129,7 @@ const Header = ({ authorized, setAuthorized }) => {
     <div className="flex justify-between items-center h-20 bg-emerald-600">
       <div className="ml-4">
         <Link to="/" className="text-3xl md:text-4xl font-bold text-white">
-          SquadPicks
+          Playoff Pickems
         </Link>
       </div>
       <ul className="flex">
