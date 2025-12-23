@@ -64,13 +64,16 @@ const JoinLeague = () => {
                 onChange={(e) => setPlayerName(e.target.value)}
                 className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            
-            <br />
 
             {joinCode !== "" && playerName !== "" &&
-                <button onClick={handleJoinLeague}>
-                    Join League    
-                </button>}
+                <div className="mt-6">
+                    <button
+                        onClick={handleJoinLeague}
+                        className="py-2 px-6 rounded-lg text-white font-semibold bg-emerald-500 hover:bg-emerald-600 transition duration-200"
+                    >
+                        Join League
+                    </button>
+                </div>}
         </div>
         
     )
