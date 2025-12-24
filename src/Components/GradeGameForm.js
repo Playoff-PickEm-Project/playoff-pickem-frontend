@@ -32,7 +32,7 @@ const GradeGameForm = () => {
                 const userID = leagueData.commissioner.user_id;
 
                 // Fetch user data
-                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,57 +317,6 @@ const GradeGameForm = () => {
                 [type]: value,
             },
         }));
-    };
-
-    const handleWinnerLoserProp = (prop_id, answer) => {
-        const data = {
-            prop_id: prop_id,
-            answer: answer
-        };
-
-        fetch(`${apiUrl}/correct_winner_loser_prop`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Update userChoices immediately after saving
-                    setUserChoices(prevChoices => ({
-                        ...prevChoices,
-                        [prop_id]: { 'team': answer }
-                    }));
-                } else {
-                    alert("Answer was not saved");
-                }
-            })
-            .catch(error => console.log("Error saving answer"));
-    };
-
-    const handleOverUnderProp = (prop_id, answer) => {
-        console.log(prop_id)
-        const data = {
-            prop_id: prop_id,
-            answer: answer
-        };
-
-        fetch(`${apiUrl}/correct_over_under_prop`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => {
-                if (response.ok) {
-                    // Update userChoices immediately after saving
-                    setUserChoices(prevChoices => ({
-                        ...prevChoices,
-                        [prop_id]: { choice: answer }
-                    }));
-                } else {
-                    alert("Answer was not saved");
-                }
-            })
-            .catch(error => console.log("Error saving answer"));
     };
 
     const handleMultipleChoiceChange = (propId, answerChoice, isChecked) => {

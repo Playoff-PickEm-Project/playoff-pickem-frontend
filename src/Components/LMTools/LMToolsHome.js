@@ -36,7 +36,7 @@ const LMToolsHome = () => {
                 setUserID(leagueData.commissioner.user_id);
 
                 // Fetch user data and compare to check if they are the commissioner
-                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
