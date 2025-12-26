@@ -13,7 +13,7 @@ const LeagueList = () => {
   useEffect(() => {
     async function getUsersLeagues() {
       try {
-        const response = await fetch(`${apiUrl}/get_users_leagues?username=${username}`, {
+        const response = await fetch(`${apiUrl}/get_users_leagues?username=${encodeURIComponent(username)}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

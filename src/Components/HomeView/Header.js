@@ -46,7 +46,7 @@ const Header = ({ authorized, setAuthorized }) => {
 
         // Fetch user data and compare to check if they are the commissioner
         const userResponse = await fetch(
-          `${apiUrl}/get_user_by_username?username=${username}`,
+          `${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`,
           {
             method: "GET",
             headers: {

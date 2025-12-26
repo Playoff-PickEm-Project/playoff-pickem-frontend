@@ -14,7 +14,7 @@ const GameList = () => {
   useEffect(() => {
     async function getGamesFromLeague() {
       try {
-        const response = await fetch(`${apiUrl}/get_games_in_league?leagueName=${leagueName}`, {
+        const response = await fetch(`${apiUrl}/get_games?leagueName=${leagueName}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

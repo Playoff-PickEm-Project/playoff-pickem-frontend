@@ -20,7 +20,7 @@ const EditGameForm = () => {
                 const leagueData = await leagueResponse.json();
                 setLeague(leagueData);
 
-                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`);
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`);
                 const userData = await userResponse.json();
 
                 if (leagueData.commissioner.user_id === userData.id) {

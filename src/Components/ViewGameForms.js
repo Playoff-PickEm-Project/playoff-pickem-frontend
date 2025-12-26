@@ -34,7 +34,7 @@ const ViewGameForms = () => {
             alert("Something went wrong");
         });
 
-        fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
+        fetch(`${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ const ViewGameForms = () => {
 
     useEffect(() => {
         function getWinnerLoserAnswers() {
-            fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
+            fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${encodeURIComponent(leagueName)}&username=${encodeURIComponent(username)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ const ViewGameForms = () => {
         }    
 
         function getOverUnderAnswers() {
-            fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
+            fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${encodeURIComponent(leagueName)}&username=${encodeURIComponent(username)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

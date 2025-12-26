@@ -64,12 +64,15 @@ const CreateLeague = () => {
                 className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
-            <br />
-
             {leagueName !== "" && playerName !== "" &&
-                <button onClick={handleCreateLeague}>
-                    Create League    
-                </button>}
+                <div className="mt-6">
+                    <button
+                        onClick={handleCreateLeague}
+                        className="py-2 px-6 rounded-lg text-white font-semibold bg-emerald-500 hover:bg-emerald-600 transition duration-200"
+                    >
+                        Create League
+                    </button>
+                </div>}
         </div>
     )
 }

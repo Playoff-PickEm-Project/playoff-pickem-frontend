@@ -76,7 +76,7 @@ const GamePage = () => {
                 const leagueData = await leagueResponse.json();
 
                 // Fetch user data and compare to check if they are the commissioner
-                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${username}`, {
+                const userResponse = await fetch(`${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ const GamePage = () => {
     }, [gameId]);
 
     useEffect(() => {
-        fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${leagueName}&username=${username}`, {
+        fetch(`${apiUrl}/retrieve_winner_loser_answers?leagueName=${encodeURIComponent(leagueName)}&username=${encodeURIComponent(username)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -142,7 +142,7 @@ const GamePage = () => {
     }, [leagueName, username]);
 
     useEffect(() => {
-        fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${leagueName}&username=${username}`, {
+        fetch(`${apiUrl}/retrieve_over_under_answers?leagueName=${encodeURIComponent(leagueName)}&username=${encodeURIComponent(username)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const GamePage = () => {
     }, [leagueName, username]);
 
     useEffect(() => {
-        fetch(`${apiUrl}/retrieve_variable_option_answers?leagueName=${leagueName}&username=${username}`, {
+        fetch(`${apiUrl}/retrieve_variable_option_answers?leagueName=${encodeURIComponent(leagueName)}&username=${encodeURIComponent(username)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
