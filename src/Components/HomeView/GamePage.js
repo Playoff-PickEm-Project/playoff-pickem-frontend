@@ -17,6 +17,7 @@ const GamePage = () => {
     const [gameStartTime, setGameStartTime] = useState(null);
     const isGameExpired = new Date() > gameStartTime;
     const [allPlayersAnswers, setAllPlayersAnswers] = useState([]);
+    const [liveStats, setLiveStats] = useState(null);
     const apiUrl = process.env.REACT_APP_API_URL;
 
     // const [isGameExpired, setIsGameExpired] = useState(new Date() > gameStartTime);
@@ -57,6 +58,32 @@ const GamePage = () => {
             getAnswers();
         }
     }, [])
+
+    // Fetch live stats for the game
+    useEffect(() => {
+        const fetchLiveStats = async () => {
+            try {
+                const response = await fetch(`${apiUrl}/game/${gameId}/live_stats`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setLiveStats(data);
+                }
+            } catch (error) {
+                console.error("Error fetching live stats:", error);
+            }
+        };
+
+        fetchLiveStats();
+
+        // Poll every 30 seconds for live updates
+        const interval = setInterval(fetchLiveStats, 30000);
+
+        return () => clearInterval(interval);
+    }, [gameId]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -272,6 +299,18 @@ const GamePage = () => {
         navigate(`/league-home/${leagueName}/editGame/${gameId}`);
     };
 
+    // Helper function to get live stats for a specific over/under prop
+    const getOverUnderLiveStats = (propId) => {
+        if (!liveStats || !liveStats.over_under_props) return null;
+        return liveStats.over_under_props.find(p => p.prop_id === propId);
+    };
+
+    // Helper function to get live stats for a specific winner/loser prop
+    const getWinnerLoserLiveStats = (propId) => {
+        if (!liveStats || !liveStats.winner_loser_props) return null;
+        return liveStats.winner_loser_props.find(p => p.prop_id === propId);
+    };
+
     return (
         <div className="p-6 max-w-3xl mx-auto bg-white rounded-lg shadow-lg">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Game Form</h3>
@@ -284,7 +323,9 @@ const GamePage = () => {
 
             <div className="flex flex-col items-center space-y-8">
                 {/* Render Winner-Loser Props */}
-                {winnerLoserProps.map((prop, index) => (
+                {winnerLoserProps.map((prop, index) => {
+                    const propLiveStats = getWinnerLoserLiveStats(prop.prop_id);
+                    return (
                     <div
                         key={prop.prop_id}
                         className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -292,6 +333,22 @@ const GamePage = () => {
                         <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
                             {prop.question}
                         </h4>
+
+                        {/* Live Score Display */}
+                        {propLiveStats && propLiveStats.team_a_name && propLiveStats.team_b_name && (
+                            <div className="mb-3 p-2 bg-blue-50 rounded text-center">
+                                {propLiveStats.team_a_score !== null && propLiveStats.team_b_score !== null ? (
+                                    <span className="text-sm font-semibold text-blue-900">
+                                        Live: {propLiveStats.team_a_score} - {propLiveStats.team_b_score}
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-gray-500">
+                                        {propLiveStats.team_a_name} vs {propLiveStats.team_b_name} - Not started
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         <div className="flex flex-col space-y-4">
                             <label className="flex items-center space-x-3">
                                 <input
@@ -323,10 +380,13 @@ const GamePage = () => {
                             </label>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
 
                 {/* Render Over-Under Props */}
-                {overUnderProps.map((prop, index) => (
+                {overUnderProps.map((prop, index) => {
+                    const propLiveStats = getOverUnderLiveStats(prop.prop_id);
+                    return (
                     <div
                         key={prop.prop_id}
                         className="w-full max-w-md p-4 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -335,6 +395,30 @@ const GamePage = () => {
                         <h4 className="text-lg font-bold text-gray-700 mb-4 text-center">
                             {prop.question}
                         </h4>
+
+                        {/* Live Stats Display */}
+                        {propLiveStats && propLiveStats.player_name && (
+                            <div className="mb-3 p-2 bg-green-50 rounded">
+                                <div className="text-sm text-gray-600 text-center">
+                                    {propLiveStats.player_name} - {propLiveStats.stat_type?.replace(/_/g, ' ')}
+                                </div>
+                                <div className="text-center mt-1">
+                                    {propLiveStats.current_value !== null ? (
+                                        <span className="text-lg font-bold text-green-700">
+                                            {propLiveStats.current_value}
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm text-gray-400">No data yet</span>
+                                    )}
+                                    {propLiveStats.line_value !== null && (
+                                        <span className="text-sm text-gray-500 ml-1">
+                                            / {propLiveStats.line_value}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col space-y-4">
                             <label className="flex items-center space-x-3">
                                 <input
@@ -362,7 +446,8 @@ const GamePage = () => {
                             </label>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
 
                 {variableOptionProps.map((prop, index) => (
                     <div
