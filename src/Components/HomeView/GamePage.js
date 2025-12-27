@@ -231,10 +231,14 @@ const GamePage = () => {
         })
             .then(response => {
                 if (response.ok) {
-                    // Update userChoices immediately after saving
+                    // Update BOTH userChoices AND winnerLoserAnswers to prevent race condition
                     setUserChoices(prevChoices => ({
                         ...prevChoices,
-                        [prop_id]: { team: answer }
+                        [prop_id]: { ...prevChoices[prop_id], team: answer }
+                    }));
+                    setWinnerLoserAnswers(prevAnswers => ({
+                        ...prevAnswers,
+                        [prop_id]: answer
                     }));
                 } else {
                     alert("Answer was not saved");
@@ -255,10 +259,14 @@ const GamePage = () => {
         })
             .then(response => {
                 if (response.ok) {
-                    // Update userChoices immediately after saving
+                    // Update BOTH userChoices AND overUnderAnswers to prevent race condition
                     setUserChoices(prevChoices => ({
                         ...prevChoices,
-                        [prop_id]: { choice: answer }
+                        [prop_id]: { ...prevChoices[prop_id], choice: answer }
+                    }));
+                    setOverUnderAnswers(prevAnswers => ({
+                        ...prevAnswers,
+                        [prop_id]: answer
                     }));
                 } else {
                     alert("Answer was not saved");
@@ -272,17 +280,21 @@ const GamePage = () => {
             return;
         }
         const data = { leagueName, username, prop_id, answer };
-        fetch(`${apiUrl}/answer_variable_option_prop`, {        // NEED TO CREATE THIS ENDPOINT
+        fetch(`${apiUrl}/answer_variable_option_prop`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
             .then(response => {
                 if (response.ok) {
-                    // Update userChoices immediately after saving
+                    // Update BOTH userChoices AND variableOptionAnswers to prevent race condition
                     setUserChoices(prevChoices => ({
                         ...prevChoices,
-                        [prop_id]: { option: answer },
+                        [prop_id]: { ...prevChoices[prop_id], option: answer }
+                    }));
+                    setVariableOptionAnswers(prevAnswers => ({
+                        ...prevAnswers,
+                        [prop_id]: answer
                     }));
                 } else {
                     alert("Answer was not saved");
