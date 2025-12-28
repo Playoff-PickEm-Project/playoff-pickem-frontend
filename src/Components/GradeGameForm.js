@@ -66,8 +66,8 @@ const GradeGameForm = () => {
             // Loop through each winnerLoserProp
             for (const prop of winnerLoserProps) {
                 let set_answer = "";
-                if (userChoices[prop.prop_id] != null) {
-                    set_answer = userChoices[prop.prop_id]?.team;
+                if (userChoices[prop.prop_id]?.team) {
+                    set_answer = userChoices[prop.prop_id].team;
                 }
                 else {
                     set_answer = correctAnswers[prop.prop_id][0]
@@ -310,13 +310,19 @@ const GradeGameForm = () => {
 	}, [variableOptionProps, correctAnswers]);
 
     const handleChoiceChange = (propId, type, value) => {
-        setUserChoices((prevChoices) => ({
-            ...prevChoices,
-            [propId]: {
-                ...prevChoices[propId],
-                [type]: value,
-            },
-        }));
+        console.log('handleChoiceChange called:', { propId, type, value });
+        setUserChoices((prevChoices) => {
+            console.log('Previous choices:', prevChoices);
+            const newChoices = {
+                ...prevChoices,
+                [propId]: {
+                    ...prevChoices[propId],
+                    [type]: value,
+                },
+            };
+            console.log('New choices:', newChoices);
+            return newChoices;
+        });
     };
 
     const handleMultipleChoiceChange = (propId, answerChoice, isChecked) => {
