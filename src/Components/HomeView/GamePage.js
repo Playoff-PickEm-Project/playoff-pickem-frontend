@@ -351,7 +351,7 @@ const GamePage = () => {
                             <div className="mb-3 p-2 bg-blue-50 rounded text-center">
                                 {propLiveStats.team_a_score !== null && propLiveStats.team_b_score !== null ? (
                                     <span className="text-sm font-semibold text-blue-900">
-                                        Live: {propLiveStats.team_a_score} - {propLiveStats.team_b_score}
+                                        {liveStats.is_completed ? 'Final' : 'Live'}: {propLiveStats.team_a_score} - {propLiveStats.team_b_score}
                                     </span>
                                 ) : (
                                     <span className="text-sm text-gray-500">
