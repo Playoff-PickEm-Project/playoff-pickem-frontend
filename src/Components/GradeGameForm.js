@@ -310,10 +310,10 @@ const GradeGameForm = () => {
 	}, [variableOptionProps, correctAnswers]);
 
     const handleChoiceChange = (propId, type, value) => {
-        setUserChoices((prev) => ({
-            ...prev,
+        setUserChoices((prevChoices) => ({
+            ...prevChoices,
             [propId]: {
-                ...prev[propId],
+                ...prevChoices[propId],
                 [type]: value,
             },
         }));
@@ -353,8 +353,8 @@ const GradeGameForm = () => {
                                 value={prop.favorite_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
                                 checked={
-                                    (userChoices[prop.prop_id]?.team?.includes(prop.favorite_team)) || 
-                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes(prop.favorite_team))
+                                    (userChoices[prop.prop_id]?.team === prop.favorite_team) ||
+                                    (!userChoices[prop.prop_id]?.team && correctAnswers[prop.prop_id]?.includes(prop.favorite_team))
                                 }
                             />
                             {prop.favorite_team} ({prop.favorite_points})
@@ -368,8 +368,8 @@ const GradeGameForm = () => {
                                 value={prop.underdog_team}
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
                                 checked={
-                                    (userChoices[prop.prop_id]?.team?.includes(prop.underdog_team)) || 
-                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes(prop.underdog_team))
+                                    (userChoices[prop.prop_id]?.team === prop.underdog_team) ||
+                                    (!userChoices[prop.prop_id]?.team && correctAnswers[prop.prop_id]?.includes(prop.underdog_team))
                                 }
                             />
                             {prop.underdog_team} ({prop.underdog_points})
@@ -390,8 +390,8 @@ const GradeGameForm = () => {
                                 value="over"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
                                 checked={
-                                    (userChoices[prop.prop_id]?.choice?.includes('over')) || 
-                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes('over'))
+                                    (userChoices[prop.prop_id]?.choice === 'over') ||
+                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[prop.prop_id]?.includes('over'))
                                 }
                             />
                             Over ({prop.over_points})
@@ -405,8 +405,8 @@ const GradeGameForm = () => {
                                 value="under"
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
                                 checked={
-                                    (userChoices[prop.prop_id]?.choice?.includes('under')) || 
-                                    (!userChoices[prop.prop_id] && correctAnswers[prop.prop_id]?.includes('under'))
+                                    (userChoices[prop.prop_id]?.choice === 'under') ||
+                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[prop.prop_id]?.includes('under'))
                                 }
                             />
                             Under ({prop.under_points})
