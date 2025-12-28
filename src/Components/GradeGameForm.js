@@ -69,8 +69,13 @@ const GradeGameForm = () => {
                 if (userChoices[prop.prop_id]?.team) {
                     set_answer = userChoices[prop.prop_id].team;
                 }
-                else {
+                else if (correctAnswers[prop.prop_id] && correctAnswers[prop.prop_id][0]) {
                     set_answer = correctAnswers[prop.prop_id][0]
+                }
+                else {
+                    // No answer set, skip this prop
+                    console.log(`Skipping winner/loser prop ${prop.prop_id} - no answer set`);
+                    continue;
                 }
 
                 const data = {
@@ -90,14 +95,16 @@ const GradeGameForm = () => {
                     });
 
                     if (!response.ok) {
-                        alert("went wrong");
+                        const errorText = await response.text();
+                        console.error('Failed to save winner/loser answer:', response.status, errorText);
+                        alert(`Failed to save winner/loser answer for prop ${prop.prop_id}`);
                     }
 
                     const result = await response.json();
                     console.log(result); // Handle the result if needed
                 } catch (error) {
                     console.error('Error saving answer:', error);
-                    alert('Failed to save answer.');
+                    alert(`Failed to save answer for prop ${prop.prop_id}`);
                 }
             }
 
@@ -105,10 +112,15 @@ const GradeGameForm = () => {
             for (const prop of overUnderProps) {
                 let set_answer = "";
                 if (userChoices[prop.prop_id] && userChoices[prop.prop_id].choice) {
-                    set_answer = userChoices[prop.prop_id]?.choice;
+                    set_answer = userChoices[prop.prop_id].choice;
+                }
+                else if (correctAnswers[prop.prop_id] && correctAnswers[prop.prop_id][0]) {
+                    set_answer = correctAnswers[prop.prop_id][0]
                 }
                 else {
-                    set_answer = correctAnswers[prop.prop_id][0]
+                    // No answer set, skip this prop
+                    console.log(`Skipping over/under prop ${prop.prop_id} - no answer set`);
+                    continue;
                 }
                 console.log(set_answer)
 
@@ -129,14 +141,16 @@ const GradeGameForm = () => {
                     });
 
                     if (!response.ok) {
-                        alert("went wrong");
+                        const errorText = await response.text();
+                        console.error('Failed to save over/under answer:', response.status, errorText);
+                        alert(`Failed to save over/under answer for prop ${prop.prop_id}`);
                     }
 
                     const result = await response.json();
                     console.log(result); // Handle the result if needed
                 } catch (error) {
                     console.error('Error saving answer:', error);
-                    alert('Failed to save answer.');
+                    alert(`Failed to save over/under answer for prop ${prop.prop_id}`);
                 }
             }
 
