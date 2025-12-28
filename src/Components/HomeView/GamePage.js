@@ -350,9 +350,14 @@ const GamePage = () => {
                         {propLiveStats && propLiveStats.team_a_name && propLiveStats.team_b_name && (
                             <div className="mb-3 p-2 bg-blue-50 rounded text-center">
                                 {propLiveStats.team_a_score !== null && propLiveStats.team_b_score !== null ? (
-                                    <span className="text-sm font-semibold text-blue-900">
-                                        {liveStats.is_completed ? 'Final' : 'Live'}: {propLiveStats.team_a_score} - {propLiveStats.team_b_score}
-                                    </span>
+                                    <div className="text-sm">
+                                        <div className="font-semibold text-blue-900 mb-1">
+                                            {liveStats.is_completed ? 'Final' : 'Live'}
+                                        </div>
+                                        <div className="text-blue-800">
+                                            {propLiveStats.team_a_name} {propLiveStats.team_a_score} - {propLiveStats.team_b_score} {propLiveStats.team_b_name}
+                                        </div>
+                                    </div>
                                 ) : (
                                     <span className="text-sm text-gray-500">
                                         {propLiveStats.team_a_name} vs {propLiveStats.team_b_name} - Not started
