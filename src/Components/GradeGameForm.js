@@ -69,13 +69,15 @@ const GradeGameForm = () => {
                 if (userChoices[prop.prop_id]?.team) {
                     set_answer = userChoices[prop.prop_id].team;
                 }
-                else if (correctAnswers[prop.prop_id] && correctAnswers[prop.prop_id][0]) {
-                    set_answer = correctAnswers[prop.prop_id][0]
-                }
                 else {
-                    // No answer set, skip this prop
-                    console.log(`Skipping winner/loser prop ${prop.prop_id} - no answer set`);
-                    continue;
+                    const key = `winner_loser_${prop.prop_id}`;
+                    if (correctAnswers[key] && correctAnswers[key][0]) {
+                        set_answer = correctAnswers[key][0];
+                    } else {
+                        // No answer set, skip this prop
+                        console.log(`Skipping winner/loser prop ${prop.prop_id} - no answer set`);
+                        continue;
+                    }
                 }
 
                 const data = {
@@ -114,13 +116,15 @@ const GradeGameForm = () => {
                 if (userChoices[prop.prop_id] && userChoices[prop.prop_id].choice) {
                     set_answer = userChoices[prop.prop_id].choice;
                 }
-                else if (correctAnswers[prop.prop_id] && correctAnswers[prop.prop_id][0]) {
-                    set_answer = correctAnswers[prop.prop_id][0]
-                }
                 else {
-                    // No answer set, skip this prop
-                    console.log(`Skipping over/under prop ${prop.prop_id} - no answer set`);
-                    continue;
+                    const key = `over_under_${prop.prop_id}`;
+                    if (correctAnswers[key] && correctAnswers[key][0]) {
+                        set_answer = correctAnswers[key][0];
+                    } else {
+                        // No answer set, skip this prop
+                        console.log(`Skipping over/under prop ${prop.prop_id} - no answer set`);
+                        continue;
+                    }
                 }
                 console.log(set_answer)
 
@@ -276,20 +280,23 @@ const GradeGameForm = () => {
                 }
 
                 const data = await response.json();
-                const answersMap = data.reduce((acc, { prop_id, correct_answer }) => {
-                    // If the current prop_id doesn't exist yet in acc, initialize it as an empty array
-                    if (!acc[prop_id]) {
-                        acc[prop_id] = [];
+
+                // Separate correct answers by prop type and prop_id
+                // Use format: answersMap['winner_loser_3'] = ['Jacksonville Jaguars']
+                const answersMap = {};
+
+                data.forEach(({ prop_id, prop_type, correct_answer }) => {
+                    // Create a unique key by combining prop type and prop_id
+                    const key = `${prop_type}_${prop_id}`;
+
+                    if (!answersMap[key]) {
+                        answersMap[key] = [];
                     }
-
-                    // Add the current correct_answer to the array for that prop_id
-                    acc[prop_id].push(correct_answer);
-
-                    return acc;
-                }, {});
+                    answersMap[key].push(correct_answer);
+                });
 
                 setCorrectAnswers(answersMap);
-                console.log(answersMap);
+                console.log('Correct answers map:', answersMap);
             }
             catch (error) {
                 console.log(error);
@@ -374,7 +381,7 @@ const GradeGameForm = () => {
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.favorite_team)}
                                 checked={
                                     (userChoices[prop.prop_id]?.team === prop.favorite_team) ||
-                                    (!userChoices[prop.prop_id]?.team && correctAnswers[prop.prop_id]?.includes(prop.favorite_team))
+                                    (!userChoices[prop.prop_id]?.team && correctAnswers[`winner_loser_${prop.prop_id}`]?.includes(prop.favorite_team))
                                 }
                             />
                             {prop.favorite_team} ({prop.favorite_points})
@@ -389,7 +396,7 @@ const GradeGameForm = () => {
                                 onChange={() => handleChoiceChange(prop.prop_id, 'team', prop.underdog_team)}
                                 checked={
                                     (userChoices[prop.prop_id]?.team === prop.underdog_team) ||
-                                    (!userChoices[prop.prop_id]?.team && correctAnswers[prop.prop_id]?.includes(prop.underdog_team))
+                                    (!userChoices[prop.prop_id]?.team && correctAnswers[`winner_loser_${prop.prop_id}`]?.includes(prop.underdog_team))
                                 }
                             />
                             {prop.underdog_team} ({prop.underdog_points})
@@ -411,7 +418,7 @@ const GradeGameForm = () => {
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'over')}
                                 checked={
                                     (userChoices[prop.prop_id]?.choice === 'over') ||
-                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[prop.prop_id]?.includes('over'))
+                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[`over_under_${prop.prop_id}`]?.includes('over'))
                                 }
                             />
                             Over ({prop.over_points})
@@ -426,7 +433,7 @@ const GradeGameForm = () => {
                                 onChange={() => handleChoiceChange(prop.prop_id, 'choice', 'under')}
                                 checked={
                                     (userChoices[prop.prop_id]?.choice === 'under') ||
-                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[prop.prop_id]?.includes('under'))
+                                    (!userChoices[prop.prop_id]?.choice && correctAnswers[`over_under_${prop.prop_id}`]?.includes('under'))
                                 }
                             />
                             Under ({prop.under_points})
