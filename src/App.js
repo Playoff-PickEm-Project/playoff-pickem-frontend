@@ -1,79 +1,103 @@
-import './App.css';
-import LoginPage from './Components/Auth/LoginPage';
-import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import RegisterPage from './Components/Auth/Register';
-import Header from './Components/HomeView/Header';
-import Leaderboard from './Components/Leaderboard';
-import Games from './Components/Games';
-import GameFormBuilder from './Components/GameFormBuilder';
-import LeagueList from './Components/HomeView/LeagueList';
-import LeagueHome from './Components/LeagueHome';
-import CreateLeague from './Components/LeagueCreation/LeagueCreation';
-import JoinLeague from './Components/LeagueCreation/LeagueJoin';
-import ViewGameForms from './Components/ViewGameForms';
-import GradeGameForm from './Components/GradeGameForm';
-import LMToolsHome from './Components/LMTools/LMToolsHome';
-import GamePage from './Components/HomeView/GamePage';
-import GameList from './Components/HomeView/GameList';
-import EditGameForm from './Components/EditGameForm';
+import "./App.css";
+import { useEffect, useState } from "react";
+import { Route, Routes, Navigate } from "react-router-dom";
+
+import LoginPage from "./Components/Auth/LoginPage";
+import RegisterPage from "./Components/Auth/Register";
+import Header from "./Components/HomeView/Header";
+
+import LeagueList from "./Components/HomeView/LeagueList";
+import LeagueHome from "./Components/LeagueHome";
+import CreateLeague from "./Components/LeagueCreation/LeagueCreation";
+import JoinLeague from "./Components/LeagueCreation/LeagueJoin";
+import GradeGameForm from "./Components/GradeGameForm";
+import LMToolsHome from "./Components/LMTools/LMToolsHome";
+import GamePage from "./Components/HomeView/GamePage";
+import GameList from "./Components/HomeView/GameList";
+import EditGameForm from "./Components/EditGameForm";
+
+import LandingPage from "./Components/Landing/LandingPage";
 
 export const getUsername = () => {
-  return localStorage.getItem('username')
-}
+  return localStorage.getItem("username");
+};
 
 export default function App() {
-  // Initialize state from local storage
   const [authorized, setAuthorized] = useState(() => {
-    const storedAuth = localStorage.getItem('authorized');
-    return storedAuth === 'true'; // Convert string to boolean
+    const storedAuth = localStorage.getItem("authorized");
+    return storedAuth === "true";
   });
 
-  // Function to handle login success
   const handleLoginSuccess = () => {
-    setAuthorized(true); // Update state to show authorized content
-    localStorage.setItem('authorized', 'true'); // Save to local storage
+    setAuthorized(true);
+    localStorage.setItem("authorized", "true");
   };
 
-  // Optional: Cleanup local storage if needed
   useEffect(() => {
     return () => {
-      localStorage.removeItem('authorized'); // Cleanup on component unmount (optional)
+      localStorage.removeItem("authorized");
     };
   }, []);
 
   return (
     <div className="App">
-      {/* Need to change to only on leaguelist view */}
-      <Header authorized={authorized} setAuthorized={setAuthorized}/>
+      {/* Only show Header inside the authenticated app */}
+      {authorized && <Header authorized={authorized} setAuthorized={setAuthorized} />}
+
       <Routes>
-        {/* Render LoginPage or RegisterPage if not logged in */}
-        {!authorized ? (
-          <>
-            <Route path="/" element={<LoginPage onLoginSuccess={handleLoginSuccess} />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </>
-        ) : (
-          // Redirect to leaderboard or other authorized pages if logged in
-          <Route path="/" element={<Navigate to="/league-list" replace />} />
-        )}
+        {/* Public landing page */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Auth pages */}
+        <Route
+          path="/login"
+          element={
+            authorized ? (
+              <Navigate to="/league-list" replace />
+            ) : (
+              <LoginPage onLoginSuccess={handleLoginSuccess} />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={authorized ? <Navigate to="/league-list" replace /> : <RegisterPage />}
+        />
 
         {/* Authorized pages */}
-        <Route path="/league-list" element={authorized ? <LeagueList /> : <Navigate to="/" />} />
+        <Route path="/league-list" element={authorized ? <LeagueList /> : <Navigate to="/login" replace />} />
 
-        {/* To create and join a league */}
-        <Route path="/league-create" element={authorized ? <CreateLeague /> : <Navigate to="/" />} />
-        <Route path="/league-join" element={authorized ? <JoinLeague /> : <Navigate to="/" />} />
-        
-        {/* LeagueHome page using leagueName */}
-        <Route path="/league-home/:leagueName" element={authorized ? <LeagueHome /> : <Navigate to="/" />} />
-        <Route path="/league-home/:leagueName/viewGames" element={authorized ? <GameList /> : <Navigate to="/" />} />
-        <Route path="/league-home/:leagueName/viewGames/:gameId" element={authorized ? <GamePage /> : <Navigate to="/" />} />
-        <Route path="/league-home/:leagueName/setCorrectAnswers/:gameId" element={authorized ? <GradeGameForm /> : <Navigate to="/" />} />
-        <Route path="/league-home/:leagueName/editGame/:gameId" element={authorized ? <EditGameForm /> : <Navigate to="/" />} />
+        <Route path="/league-create" element={authorized ? <CreateLeague /> : <Navigate to="/login" replace />} />
+        <Route path="/league-join" element={authorized ? <JoinLeague /> : <Navigate to="/login" replace />} />
 
+        <Route
+          path="/league-home/:leagueName"
+          element={authorized ? <LeagueHome /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/league-home/:leagueName/viewGames"
+          element={authorized ? <GameList /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/league-home/:leagueName/viewGames/:gameId"
+          element={authorized ? <GamePage /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/league-home/:leagueName/setCorrectAnswers/:gameId"
+          element={authorized ? <GradeGameForm /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/league-home/:leagueName/editGame/:gameId"
+          element={authorized ? <EditGameForm /> : <Navigate to="/login" replace />}
+        />
 
-        <Route path="/league-home/:leagueName/league_manager_tools" element={authorized ? <LMToolsHome /> : <Navigate to="/" />} />
+        <Route
+          path="/league-home/:leagueName/league_manager_tools"
+          element={authorized ? <LMToolsHome /> : <Navigate to="/login" replace />}
+        />
+
+        {/* Optional: catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );

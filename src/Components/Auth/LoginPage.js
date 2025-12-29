@@ -2,11 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
+import { Navbar } from "../Landing/Navbar";
 
 const LoginPage = ({ onLoginSuccess }) => {
   const [usernameValue, setUsername] = useState("");
   const [passwordValue, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Toast state
+  const [toast, setToast] = useState(null);
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    clearTimeout(showToast._timeout);
+    showToast._timeout = setTimeout(() => setToast(null), 3000);
+  };
+
   const apiUrl = process.env.REACT_APP_API_URL;
   const navigate = useNavigate();
 
@@ -15,21 +25,19 @@ const LoginPage = ({ onLoginSuccess }) => {
     const checkSession = async () => {
       try {
         const response = await fetch(`${apiUrl}/session-info`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         });
-        
+
         const data = await response.json();
         if (data.username) {
           localStorage.setItem("username", data.username);
           localStorage.setItem("auth_provider", data.auth_provider);
           onLoginSuccess(data.username);
-          navigate('/league-list');
+          navigate("/league-list");
         }
       } catch (error) {
-        console.error('Session check failed:', error);
+        console.error("Session check failed:", error);
       }
     };
 
@@ -40,32 +48,29 @@ const LoginPage = ({ onLoginSuccess }) => {
     event.preventDefault();
 
     async function login() {
-      const data = {
-        username: usernameValue,
-        password: passwordValue,
-      };
-
       try {
         const response = await fetch(`${apiUrl}/login`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: 'include',
-          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            username: usernameValue,
+            password: passwordValue,
+          }),
         });
 
         if (response.ok) {
-          alert("Login successful!");
+          showToast("success", "Login successful!");
           localStorage.setItem("username", usernameValue);
           localStorage.setItem("auth_provider", "local");
           onLoginSuccess(usernameValue);
-          navigate('/league-list');
+          navigate("/league-list");
         } else {
-          alert("Wrong username or password.");
+          showToast("error", "Wrong username or password.");
         }
       } catch (error) {
         console.log("Error with endpoint", error);
+        showToast("error", "Something went wrong. Please try again.");
       }
     }
 
@@ -73,139 +78,135 @@ const LoginPage = ({ onLoginSuccess }) => {
   };
 
   const handleGoogleLogin = () => {
-    // Open Google login in a popup
     const popup = window.open(
       `${apiUrl}/login/google`,
-      'Google Login',
-      'width=500,height=600'
+      "Google Login",
+      "width=500,height=600"
     );
 
-    // Listen for messages from the popup
-    window.addEventListener('message', (event) => {
-      // Verify the origin
+    const listener = (event) => {
       if (event.origin !== apiUrl) return;
-
       const data = event.data;
       if (data.success) {
-        // Store user info
-        localStorage.setItem('username', data.username);
-        localStorage.setItem('auth_provider', data.auth_provider);
+        localStorage.setItem("username", data.username);
+        localStorage.setItem("auth_provider", data.auth_provider);
         onLoginSuccess(data.username);
-        // Redirect to league list
-        window.location.href = '/league-list';
+        window.location.href = "/league-list";
       }
-    });
+    };
 
-    // Check if popup is closed
-    const checkPopup = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkPopup);
-      }
-    }, 500);
+    window.addEventListener("message", listener, { once: true });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-900">
-      <div className="w-full max-w-md p-8 rounded-xl shadow-lg bg-zinc-800">
-        <h2 className="mb-6 text-2xl font-bold text-center text-white">
-          Log in to Your Account
-        </h2>
+    <>
+      <Navbar />
 
-        {/* Google Login Button */}
-        <div className="mb-6">
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold text-white bg-white hover:bg-gray-100 transition duration-200"
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100]">
+          <div
+            className={`rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-md ${
+              toast.type === "success"
+                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-100"
+                : "bg-red-500/15 border-red-500/30 text-red-100"
+            }`}
           >
-            <FcGoogle className="text-xl" />
-            <span className="text-gray-700">Continue with Google</span>
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-600"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-zinc-800 text-zinc-400">Or continue with email</span>
-          </div>
-        </div>
-
-        <form onSubmit={handleLogin}>
-          {/* Username Field */}
-          <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="mb-1 block text-sm font-medium text-white"
-            >
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={usernameValue}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              className="w-full px-4 py-2 rounded-lg border border-zinc-500 bg-zinc-700 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          {/* Password Field */}
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="mb-1 block text-sm font-medium text-white"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={passwordValue}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full px-4 py-2 pr-10 rounded-lg border border-zinc-500 bg-zinc-700 text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+            <div className="flex items-start gap-3">
+              <span className="text-sm">{toast.message}</span>
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 transform text-zinc-400 hover:text-white focus:outline-none"
+                onClick={() => setToast(null)}
+                className="ml-2 text-white/60 hover:text-white transition"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                ✕
               </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Submit Button */}
-          <div className="flex justify-center items-center">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-950">
+        {/* Background effects */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl" />
+        </div>
+
+        {/* Login Card */}
+        <div className="relative w-full max-w-md p-8 md:p-10 rounded-3xl bg-white/5 backdrop-blur-sm border border-white/10 shadow-xl">
+          <h2 className="mb-8 text-3xl text-center text-white">
+            Log in to Your Account
+          </h2>
+
+          {/* Google Login */}
+          <button
+            onClick={handleGoogleLogin}
+            className="mb-6 w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-medium text-gray-700 bg-white hover:bg-gray-50 transition shadow-md"
+          >
+            <FcGoogle className="text-xl" />
+            Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 border-t border-white/10" />
+            <span className="text-gray-400 text-sm whitespace-nowrap">
+              Or continue with username
+            </span>
+            <div className="flex-1 border-t border-white/10" />
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="mb-2 block text-white">Username</label>
+              <input
+                value={usernameValue}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-emerald-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-white">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={passwordValue}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-5 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-emerald-500/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={!(usernameValue && passwordValue)}
-              className={`w-full px-4 py-2 rounded-lg font-semibold text-white transition duration-200 ${
+              className={`w-full px-6 py-3 rounded-xl text-white transition ${
                 usernameValue && passwordValue
-                  ? "bg-emerald-500 hover:bg-emerald-600"
-                  : "bg-emerald-300 cursor-not-allowed"
+                  ? "bg-emerald-500 hover:bg-emerald-400"
+                  : "bg-emerald-500/30 cursor-not-allowed"
               }`}
             >
               Login
             </button>
-          </div>
 
-          {/* Register Link */}
-          <p className="mt-6 text-center text-sm text-gray-400">
-            Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-emerald-400 hover:underline"
-            >
-              Register here
-            </Link>
-          </p>
-        </form>
+            <p className="text-center text-gray-400">
+              Don&apos;t have an account?{" "}
+              <Link to="/register" className="text-emerald-400">
+                Register here
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
