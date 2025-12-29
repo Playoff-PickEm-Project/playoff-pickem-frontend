@@ -128,7 +128,7 @@ const Header = ({ authorized, setAuthorized }) => {
   return (
     <div className="flex justify-between items-center h-20 bg-emerald-600">
       <div className="ml-4">
-        <Link to="/" className="text-3xl md:text-4xl font-bold text-white">
+        <Link to={authorized ? "/league-list" : "/"} className="text-3xl md:text-4xl font-bold text-white">
           Playoff Pickems
         </Link>
       </div>
