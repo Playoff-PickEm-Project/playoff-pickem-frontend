@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 
 import LoginPage from "./Components/Auth/LoginPage";
@@ -32,12 +32,6 @@ export default function App() {
     setAuthorized(true);
     localStorage.setItem("authorized", "true");
   };
-
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem("authorized");
-    };
-  }, []);
 
   return (
     <div className="App">
