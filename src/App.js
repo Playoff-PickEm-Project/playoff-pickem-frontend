@@ -40,7 +40,7 @@ export default function App() {
 
       <Routes>
         {/* Public landing page */}
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={authorized ? <Navigate to="/league-list" replace /> : <LandingPage />} />
 
         {/* Auth pages */}
         <Route
