@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import { getUsername } from "../../App";
 
 // Header component, can access all different pages from here
 const Header = ({ authorized, setAuthorized }) => {
-
   const location = useLocation();
   const username = getUsername();
   const navigate = useNavigate();
@@ -13,14 +12,41 @@ const Header = ({ authorized, setAuthorized }) => {
   const [userID, setUserID] = useState(null);
   const [isCommissioner, setIsCommissioner] = useState(false);
   const apiUrl = process.env.REACT_APP_API_URL;
-    
+
+  // --- inactivity timer (useRef so it doesn't reset weirdly across renders)
+  const inactivityTimeoutRef = useRef(null);
+
+  const handleLogout = () => {
+    setAuthorized(false);
+    localStorage.setItem("authorized", "false");
+    localStorage.removeItem("username");
+  };
+
+  const resetInactivityTimer = () => {
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+    }
+    inactivityTimeoutRef.current = setTimeout(handleLogout, 600000); // 10 minutes
+  };
+
+  useEffect(() => {
+    const events = ["mousemove", "keydown", "scroll", "click"];
+    events.forEach((event) => window.addEventListener(event, resetInactivityTimer));
+    resetInactivityTimer();
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
+      if (inactivityTimeoutRef.current) clearTimeout(inactivityTimeoutRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Extract leagueName dynamically from the URL path
         const leagueNameFromPath = location.pathname.split("/")[2];
-        console.log(leagueNameFromPath);
-        if (leagueNameFromPath == null || username == null) {
+
+        if (!leagueNameFromPath || !username || !apiUrl) {
           return;
         }
 
@@ -29,144 +55,130 @@ const Header = ({ authorized, setAuthorized }) => {
           `${apiUrl}/get_league_by_name?leagueName=${leagueNameFromPath}`,
           {
             method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
           }
         );
 
-        if (!leagueResponse.ok) {
-          throw new Error(`HTTP error! status: ${leagueResponse.status}`);
-        }
+        if (!leagueResponse.ok) return;
 
         const leagueData = await leagueResponse.json();
         setLeague(leagueData);
-        console.log(leagueData);
-        setUserID(leagueData.commissioner.user_id);
+        setUserID(leagueData?.commissioner?.user_id ?? null);
 
         // Fetch user data and compare to check if they are the commissioner
         const userResponse = await fetch(
           `${apiUrl}/get_user_by_username?username=${encodeURIComponent(username)}`,
           {
             method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
           }
         );
 
-        if (!userResponse.ok) {
-          throw new Error(`HTTP error! status: ${userResponse.status}`);
-        }
+        if (!userResponse.ok) return;
 
         const userData = await userResponse.json();
 
-        // Check if user is the commissioner
-        if (leagueData.commissioner.user_id === userData.id) {
+        if (leagueData?.commissioner?.user_id === userData?.id) {
           setIsCommissioner(true);
+        } else {
+          setIsCommissioner(false);
         }
       } catch (error) {
-        console.error(error); // Log the error
-        alert("Something went wrong");
+        console.error(error);
       }
     };
 
     const checkPageAndReset = () => {
-      if (location.pathname === "/league-list") {
+      // If you changed /league-list -> /dashboard, include both to be safe
+      if (location.pathname === "/league-list" || location.pathname === "/dashboard") {
         setIsCommissioner(false);
         setLeague({});
         setUserID(null);
       }
     };
-  
-    checkPageAndReset(); // Check if on a reset-required page
 
+    checkPageAndReset();
     fetchData();
-  }, [location.pathname, username, navigate]);
+  }, [location.pathname, username, apiUrl, navigate]);
 
-  const handleLogout = () => {
-    setAuthorized(false); // Update state to unauthorized
-    localStorage.setItem("authorized", "false"); // Save to local storage
-    localStorage.removeItem("username");
-  };
-
-  // Function to handle logout or unauthorized state
-  let inactivityTimeout;
-
-  const resetInactivityTimer = () => {
-    // Clear any existing timeout
-    clearTimeout(inactivityTimeout);
-
-    // Set a new timeout for 10 minutes (600,000 ms)
-    inactivityTimeout = setTimeout(handleLogout, 600000); // 10 minutes in ms
-  };
-
-  useEffect(() => {
-    // Listen for user activity events
-    const events = ["mousemove", "keydown", "scroll", "click"];
-
-    // Add event listeners to detect user activity
-    events.forEach((event) => {
-      window.addEventListener(event, resetInactivityTimer);
-    });
-
-    // Set the initial inactivity timeout
-    resetInactivityTimer();
-
-    // Cleanup event listeners on component unmount
-    return () => {
-      events.forEach((event) => {
-        window.removeEventListener(event, resetInactivityTimer);
-      });
-      clearTimeout(inactivityTimeout);
-    };
-  }, []);
-
-  // Check if the user is inside a league page (e.g., "/league-home/leagueName")
+  // inside a league page?
   const isInsideLeague = location.pathname.startsWith("/league-home/");
+  const currentLeagueName = location.pathname.split("/")[2];
 
   return (
-    <div className="flex justify-between items-center h-20 bg-emerald-600">
-      <div className="ml-4">
-        <Link to={authorized ? "/league-list" : "/"} className="text-3xl md:text-4xl font-bold text-white">
-          Playoff Pickems
-        </Link>
-      </div>
-      <ul className="flex">
-        {isInsideLeague && (
-          <>
+    <nav className="sticky top-0 z-50 backdrop-blur-md bg-zinc-950/80 border-b border-white/5">
+      <div className="max-w-screen-2xl mx-auto px-6 py-4">
+        <div className="grid grid-cols-3 items-center gap-6">
+          {/* Left: Logo */}
+          <div className="justify-self-start">
             <Link
-              to={`/league-home/${location.pathname.split("/")[2]}`} // Dynamic league home path
-              className="navbar"
+              to={authorized ? "/dashboard" : "/"}
+              className="text-white text-xl font-semibold hover:opacity-90 transition whitespace-nowrap"
             >
-              Home
+              Playoff Pick&apos;ems
             </Link>
-            <Link
-              to={`/league-home/${location.pathname.split("/")[2]}/viewGames`} // Dynamic games path
-              className="navbar"
-            >
-              Games
-            </Link>
-            {isCommissioner && (
-              <Link
-                to={`/league-home/${
-                  location.pathname.split("/")[2]
-                }/league_manager_tools`}
-                className="navbar"
-              >
-                LM Tools
-              </Link>
+          </div>
+
+          {/* Center: League nav (only inside league) */}
+          <div className="justify-self-center">
+            {isInsideLeague && (
+              <div className="hidden md:flex items-center gap-2">
+                <Link
+                  to={`/league-home/${currentLeagueName}`}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
+                >
+                  Home
+                </Link>
+                <Link
+                  to={`/league-home/${currentLeagueName}/viewGames`}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
+                >
+                  Games
+                </Link>
+                {isCommissioner && (
+                  <Link
+                    to={`/league-home/${currentLeagueName}/league_manager_tools`}
+                    className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
+                  >
+                    LM Tools
+                  </Link>
+                )}
+              </div>
             )}
-          </>
-        )}
-        {authorized && (<button
-          onClick={handleLogout}
-          className="navbar text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2.5 dark:bg-red-500 dark:hover:bg-red-600 focus:outline-none dark:focus:ring-red-700"
-        >
-          Logout
-        </button>)}
-      </ul>
-    </div>
+          </div>
+
+          {/* Right: Actions */}
+          <div className="justify-self-end flex items-center gap-3">
+            {/* Mobile compact links */}
+            {isInsideLeague && (
+              <div className="flex md:hidden items-center gap-2">
+                <Link
+                  to={`/league-home/${currentLeagueName}`}
+                  className="text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-full hover:bg-white/5 text-sm"
+                >
+                  Home
+                </Link>
+                <Link
+                  to={`/league-home/${currentLeagueName}/viewGames`}
+                  className="text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-full hover:bg-white/5 text-sm"
+                >
+                  Games
+                </Link>
+              </div>
+            )}
+
+            {authorized && (
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-400 text-white px-5 py-2 rounded-full transition-all hover:shadow-lg hover:shadow-red-500/30"
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 };
 

@@ -1,6 +1,6 @@
 const stats = [
   {
-    value: '500+',
+    value: 'Multiple',
     label: 'Leagues Created',
   },
   {
