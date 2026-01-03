@@ -12,12 +12,9 @@ import ResultsTable from './ResultsTable'
 const normalizePropType = (t) => {
   if (!t) return null
   const s = String(t).toLowerCase().trim()
-
-  // normalize common variants your backend might send
   if (s.includes('winner') || s.includes('loser')) return 'winner_loser'
   if (s.includes('over') || s.includes('under')) return 'over_under'
   if (s.includes('variable') || s.includes('option')) return 'variable_option'
-
   return null
 }
 
@@ -54,7 +51,9 @@ const GamePage = () => {
 
   // Game name
   const [gameName, setGameName] = useState('Game Picks')
-  
+
+  // ✅ Grading flag (league/commissioner grading)
+  const [isGraded, setIsGraded] = useState(false)
 
   // -----------------------------
   // Derived values
@@ -64,11 +63,12 @@ const GamePage = () => {
     return new Date() > gameStartTime
   }, [gameStartTime])
 
+  // ✅ FIX: Completed means "graded", NOT ESPN final
   const gameStatus = useMemo(() => {
-    if (liveStats?.is_completed) return 'completed'
+    if (isGraded) return 'completed'
     if (isLocked) return 'live'
     return 'upcoming'
-  }, [liveStats, isLocked])
+  }, [isGraded, isLocked])
 
   const gameTimeLabel = useMemo(() => {
     if (!gameStartTime) return ''
@@ -120,7 +120,7 @@ const GamePage = () => {
   }, [apiUrl, leagueName, username])
 
   // -----------------------------
-  // Fetch game by id (props + time)
+  // Fetch game by id (props + time + graded)
   // -----------------------------
   useEffect(() => {
     const loadGame = async () => {
@@ -137,6 +137,9 @@ const GamePage = () => {
         setVariableOptionProps(data.variable_option_props || [])
         setGameStartTime(data.start_time ? new Date(data.start_time) : null)
         setGameName(data.game_name || 'Game Picks')
+
+        // ✅ IMPORTANT: completed == graded
+        setIsGraded(Boolean(data.graded))
       } catch (e) {
         console.error(e)
         alert('Something went wrong')
@@ -221,7 +224,7 @@ const GamePage = () => {
   }, [winnerLoserAnswers, overUnderAnswers, variableOptionAnswers])
 
   // -----------------------------
-  // Live stats polling
+  // Live stats polling (still used for scores/progress)
   // -----------------------------
   useEffect(() => {
     const fetchLive = async () => {
@@ -366,19 +369,13 @@ const GamePage = () => {
           const rQ = r.question != null ? String(r.question) : ''
           const rType = normalizePropType(r.prop_type)
 
-          // BEST: if backend gives prop_type, require BOTH type + id
           if (rType) return rType === wantType && rId === wantId
-
-          // FALLBACK: if no prop_type, match by exact question (prevents overlap when ids repeat)
           if (rQ) return rQ === wantQuestion
-
-          // LAST RESORT: only if backend gives neither prop_type nor question (rare)
           return rId === wantId
         })
 
         if (rowsRaw.length === 0) return null
 
-        // DEDUPE (in case backend duplicates rows)
         const seen = new Set()
         const rows = []
         for (const row of rowsRaw) {
@@ -427,14 +424,12 @@ const GamePage = () => {
   // -----------------------------
   return (
     <div className="min-h-screen bg-zinc-950 relative">
-      {/* Background gradient effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Page Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
@@ -450,7 +445,6 @@ const GamePage = () => {
           <div className="h-px bg-white/10 mt-8"></div>
         </div>
 
-        {/* Sticky status bar */}
         <div className="mb-8">
           <GameStatusBar
             matchup={gameName || 'Game'}
@@ -461,14 +455,12 @@ const GamePage = () => {
           />
         </div>
 
-        {/* Locked Banner */}
         {isLocked && (
           <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-center">
             <p className="text-red-400">🔒 Answers are locked. You can no longer change your picks.</p>
           </div>
         )}
 
-        {/* Props */}
         <div className="space-y-6 mb-8">
           {winnerLoserProps.map((prop) => {
             const ls = getWinnerLoserLiveStats(prop.prop_id)
@@ -543,19 +535,17 @@ const GamePage = () => {
           })}
         </div>
 
-        {/* Commissioner Tools */}
         {isCommissioner && (
           <div className="mb-8">
             <CommissionerTools
-              isCommissioner={isCommissioner}
-              isGraded={false}
-              onEditGame={handleEditGame}
-              onGradeGame={handleGradeGame}
+            isCommissioner={isCommissioner}
+            isGraded={isGraded}
+            onEditGame={handleEditGame}
+            onGradeGame={handleGradeGame}
             />
           </div>
         )}
 
-        {/* Results (post-lock) */}
         {isLocked && orderedResultsBlocks.length > 0 && (
           <div className="space-y-6">
             <h2 className="text-3xl text-white">Results</h2>

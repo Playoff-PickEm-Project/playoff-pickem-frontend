@@ -1,11 +1,15 @@
 import React, { useMemo } from "react"
 import { Link } from "react-router-dom"
-import { Clock, Trophy, Radio, CalendarDays } from "lucide-react"
+import { Clock, Trophy, Radio, CalendarDays, CheckCircle2 } from "lucide-react"
 
 const formatDate = (iso) => {
   if (!iso) return "TBD"
   try {
-    return new Date(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+    return new Date(iso).toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    })
   } catch {
     return "TBD"
   }
@@ -14,7 +18,10 @@ const formatDate = (iso) => {
 const formatTime = (iso) => {
   if (!iso) return ""
   try {
-    return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
+    return new Date(iso).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    })
   } catch {
     return ""
   }
@@ -39,15 +46,37 @@ const statusMeta = (game) => {
   const now = Date.now()
   const startMs = game.start_time ? new Date(game.start_time).getTime() : null
 
+  // ✅ your app's meaning of "completed"
+  if (game.graded) {
+    return {
+      label: "Completed",
+      pill: "bg-gray-500/10 border-gray-500/30 text-gray-300",
+      icon: CheckCircle2,
+    }
+  }
+
+  // optional: keep ESPN final as "Final" (separate concept)
   if (game.is_completed) {
-    return { label: "Final", pill: "bg-white/5 border-white/10 text-gray-300", icon: Trophy }
+    return {
+      label: "Final",
+      pill: "bg-white/5 border-white/10 text-gray-300",
+      icon: Trophy,
+    }
   }
 
   if (startMs && startMs <= now) {
-    return { label: "Live", pill: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400", icon: Radio }
+    return {
+      label: "Live",
+      pill: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+      icon: Radio,
+    }
   }
 
-  return { label: "Upcoming", pill: "bg-white/5 border-white/10 text-gray-300", icon: CalendarDays }
+  return {
+    label: "Upcoming",
+    pill: "bg-white/5 border-white/10 text-gray-300",
+    icon: CalendarDays,
+  }
 }
 
 const GameCard = ({ leagueName, game }) => {
@@ -58,16 +87,22 @@ const GameCard = ({ leagueName, game }) => {
   const countdown = getCountdown(game.start_time)
 
   const scoreLine =
-    game.team_a_score !== null && game.team_a_score !== undefined &&
-    game.team_b_score !== null && game.team_b_score !== undefined
+    game.team_a_score !== null &&
+    game.team_a_score !== undefined &&
+    game.team_b_score !== null &&
+    game.team_b_score !== undefined
 
   return (
     <div className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all">
       {/* Top row */}
       <div className="flex items-start justify-between gap-3 mb-4">
-        <div className="min-w-0">
-          <h3 className="text-white text-lg font-medium truncate">{game.game_name || "Game"}</h3>
-          <div className="mt-1 text-sm text-gray-400 flex items-center gap-2">
+        {/* ✅ force left column to take full width + left align */}
+        <div className="min-w-0 flex-1 text-left">
+          <h3 className="text-white text-lg font-medium truncate text-left">
+            {game.game_name || "Game"}
+          </h3>
+
+          <div className="mt-1 text-sm text-gray-400 flex items-center gap-2 text-left">
             <span>{dateLabel}</span>
             {timeLabel && (
               <>
@@ -96,7 +131,9 @@ const GameCard = ({ leagueName, game }) => {
 
         {(label === "Live" || label === "Final") && scoreLine && (
           <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-            <div className="text-sm text-gray-400 mb-1">{label === "Final" ? "Final Score" : "Live Score"}</div>
+            <div className="text-sm text-gray-400 mb-1">
+              {label === "Final" ? "Final Score" : "Live Score"}
+            </div>
             <div className="text-white font-semibold">
               {game.team_a_score} - {game.team_b_score}
             </div>

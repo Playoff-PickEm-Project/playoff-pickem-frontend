@@ -13,17 +13,20 @@ const GameList = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("upcoming")
   const [searchQuery, setSearchQuery] = useState("")
-  const [showOnlyNotPicked, setShowOnlyNotPicked] = useState(false) // hook for later
+  const [showOnlyNotPicked, setShowOnlyNotPicked] = useState(false)
 
   useEffect(() => {
     async function getGamesFromLeague() {
       setLoading(true)
       try {
-        const response = await fetch(`${apiUrl}/get_games?leagueName=${encodeURIComponent(leagueName)}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include"
-        })
+        const response = await fetch(
+          `${apiUrl}/get_games?leagueName=${encodeURIComponent(leagueName)}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }
+        )
 
         if (!response.ok) {
           console.error("Failed to fetch games:", response.status)
@@ -50,18 +53,15 @@ const GameList = () => {
     return (games || []).map((g) => {
       const start = g.start_time ? new Date(g.start_time).getTime() : null
 
-      // Determine status bucket
-      // - completed: backend says is_completed OR start_time passed AND has final data (best effort)
-      // - live: start passed, not completed
-      // - upcoming: start not passed
+      // ✅ bucket by commissioner grading first
       let status = "upcoming"
-      if (g.is_completed) status = "completed"
+      if (g.graded) status = "completed"
       else if (start && start <= now) status = "live"
 
       return {
         ...g,
         _startMs: start,
-        _statusBucket: status
+        _statusBucket: status,
       }
     })
   }, [games, now])
@@ -74,16 +74,11 @@ const GameList = () => {
   const filterBySearch = (game) => {
     if (!searchQuery.trim()) return true
     const q = searchQuery.toLowerCase()
-
-    // Search fields we have for sure: game_name
-    // (Later if you store team names separately, add them too.)
     return (game.game_name || "").toLowerCase().includes(q)
   }
 
   const filterByNotPicked = (game) => {
     if (!showOnlyNotPicked) return true
-    // You don’t currently have “picked/not picked” data in this endpoint,
-    // so leave this as always true for now (won’t break UI).
     return true
   }
 
@@ -92,7 +87,6 @@ const GameList = () => {
     .filter(filterBySearch)
     .filter(filterByNotPicked)
     .sort((a, b) => {
-      // sort by start time ascending (nulls last)
       if (!a._startMs && !b._startMs) return 0
       if (!a._startMs) return 1
       if (!b._startMs) return -1
@@ -101,17 +95,14 @@ const GameList = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 relative">
-      {/* Background gradient effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-emerald-400/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between gap-6">
-            {/* Left title block (kept readable) */}
             <div className="max-w-3xl">
               <h1 className="text-4xl sm:text-5xl text-white mb-2 text-left">Games</h1>
               <p className="text-gray-400 text-lg text-left">
@@ -119,20 +110,16 @@ const GameList = () => {
               </p>
             </div>
 
-            {/* Right pill (allowed to go far right) */}
             <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 text-sm whitespace-nowrap">
               League: {leagueName}
             </div>
           </div>
 
-          {/* Full-width divider */}
           <div className="h-px bg-white/10 mt-8 w-full"></div>
         </div>
 
-        {/* Filters */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Tabs */}
             <div className="flex items-center gap-2 p-1 rounded-2xl bg-white/5 border border-white/10">
               {TABS.map((tab) => (
                 <button
@@ -149,7 +136,6 @@ const GameList = () => {
               ))}
             </div>
 
-            {/* Search */}
             <div className="relative w-full lg:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
               <input
@@ -162,7 +148,6 @@ const GameList = () => {
             </div>
           </div>
 
-          {/* Not picked toggle (kept for UI parity) */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowOnlyNotPicked(!showOnlyNotPicked)}
@@ -182,7 +167,6 @@ const GameList = () => {
           </div>
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
