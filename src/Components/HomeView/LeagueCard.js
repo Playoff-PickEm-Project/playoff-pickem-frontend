@@ -1,40 +1,55 @@
 import React from "react";
-import { Link } from "react-router-dom"; // Import Link for navigation
+import { Link } from "react-router-dom";
+import { ArrowRight, Users, Shield } from "lucide-react";
 
 const LeagueCard = ({ league }) => {
+  const leagueName = league?.league_name ?? "League";
+  const commissioner = league?.commissioner?.name ?? "—";
+  const playerCount = league?.league_players?.length ?? 0;
+  const joinCode = league?.join_code ?? "—";
+
   return (
-    <div className="p-4 w-full sm:max-w-sm">
-      <div className="flex rounded-lg h-full bg-zinc-700 p-8 flex-col">
-        <div className="flex items-center mb-3">
-          <h2 className="text-white dark:text-white text-lg font-medium">{league.league_name}</h2>
-        </div>
-        <div className="flex flex-col justify-between flex-grow">
-          <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            Commissioner: {league.commissioner.name}
-          </p>
-          <p className="leading-relaxed text-base text-white dark:text-gray-300">
-            # of Players: {league.league_players.length}
-          </p>
-          <p style={{marginTop: "10px"}} className="leading-relaxed text-base text-white dark:text-gray-300">
-            Join Code: <span className="font-semibold text-emerald-600">{league.join_code}</span>
-          </p>
-          {/* Use Link component for navigation with league name */}
+    <div className="w-full">
+      <div className="group p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm shadow-sm transition-all duration-300 hover:bg-white/10 hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1">
+        <div className="flex flex-col gap-4">
+          {/* League Name */}
+          <h3 className="text-white text-2xl font-medium tracking-tight">
+            {leagueName}
+          </h3>
+
+          {/* Info */}
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex items-center gap-2 text-gray-400">
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <span>
+                Commissioner:{" "}
+                <span className="text-gray-200">{commissioner}</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-gray-400">
+              <Users className="w-4 h-4 text-emerald-400" />
+              <span>
+                Players: <span className="text-gray-200">{playerCount}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Join Code */}
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-sm">Join Code:</span>
+            <code className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-mono text-sm">
+              {joinCode}
+            </code>
+          </div>
+
+          {/* View Link */}
           <Link
-            to={`/league-home/${league.league_name}`}  // Pass the league's name to the path
-            className="mt-3 text-black dark:text-white hover:text-emerald-600 inline-flex items-center"
+            to={`/league-home/${encodeURIComponent(leagueName)}`}
+            className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors mt-2"
           >
-            View League
-            <svg
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="w-4 h-4 ml-2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 12h14M12 5l7 7-7 7"></path>
-            </svg>
+            <span>View League</span>
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
       </div>

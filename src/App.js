@@ -6,17 +6,17 @@ import LoginPage from "./Components/Auth/LoginPage";
 import RegisterPage from "./Components/Auth/Register";
 import Header from "./Components/HomeView/Header";
 
-import LeagueList from "./Components/HomeView/LeagueList";
-import LeagueHome from "./Components/LeagueHome";
+import LeagueHome from "./Components/LeagueDashboard/LeagueHome";
 import CreateLeague from "./Components/LeagueCreation/LeagueCreation";
 import JoinLeague from "./Components/LeagueCreation/LeagueJoin";
 import GradeGameForm from "./Components/GradeGameForm";
 import LMToolsHome from "./Components/LMTools/LMToolsHome";
-import GamePage from "./Components/HomeView/GamePage";
+import GamePage from "./Components/HomeView/Game/GamePage";
 import GameList from "./Components/HomeView/GameList";
 import EditGameForm from "./Components/EditGameForm";
 
 import LandingPage from "./Components/Landing/LandingPage";
+import UserDash from "./Components/HomeView/UserDash";
 
 export const getUsername = () => {
   return localStorage.getItem("username");
@@ -36,18 +36,29 @@ export default function App() {
   return (
     <div className="App">
       {/* Only show Header inside the authenticated app */}
-      {authorized && <Header authorized={authorized} setAuthorized={setAuthorized} />}
+      {authorized && (
+        <Header authorized={authorized} setAuthorized={setAuthorized} />
+      )}
 
       <Routes>
         {/* Public landing page */}
-        <Route path="/" element={authorized ? <Navigate to="/league-list" replace /> : <LandingPage />} />
+        <Route
+          path="/"
+          element={
+            authorized ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <LandingPage />
+            )
+          }
+        />
 
         {/* Auth pages */}
         <Route
           path="/login"
           element={
             authorized ? (
-              <Navigate to="/league-list" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <LoginPage onLoginSuccess={handleLoginSuccess} />
             )
@@ -55,14 +66,33 @@ export default function App() {
         />
         <Route
           path="/register"
-          element={authorized ? <Navigate to="/league-list" replace /> : <RegisterPage />}
+          element={
+            authorized ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <RegisterPage />
+            )
+          }
         />
 
-        {/* Authorized pages */}
-        <Route path="/league-list" element={authorized ? <LeagueList /> : <Navigate to="/login" replace />} />
+        {/* REAL DASHBOARD */}
+        <Route
+          path="/dashboard"
+          element={authorized ? <UserDash /> : <Navigate to="/login" replace />}
+        />
 
-        <Route path="/league-create" element={authorized ? <CreateLeague /> : <Navigate to="/login" replace />} />
-        <Route path="/league-join" element={authorized ? <JoinLeague /> : <Navigate to="/login" replace />} />
+        {/* 🔁 ALIAS: anything hitting /league-list goes to dashboard */}
+        <Route path="/league-list" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Authorized pages */}
+        <Route
+          path="/league-create"
+          element={authorized ? <CreateLeague /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/league-join"
+          element={authorized ? <JoinLeague /> : <Navigate to="/login" replace />}
+        />
 
         <Route
           path="/league-home/:leagueName"
@@ -84,13 +114,12 @@ export default function App() {
           path="/league-home/:leagueName/editGame/:gameId"
           element={authorized ? <EditGameForm /> : <Navigate to="/login" replace />}
         />
-
         <Route
           path="/league-home/:leagueName/league_manager_tools"
           element={authorized ? <LMToolsHome /> : <Navigate to="/login" replace />}
         />
 
-        {/* Optional: catch-all */}
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

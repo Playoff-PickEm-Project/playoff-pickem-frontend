@@ -50,7 +50,7 @@ const JoinLeague = () => {
             <h4>Join Code</h4>
             <input 
                 name="League-Name" 
-                placeholder="Input your league name." 
+                placeholder="Input your league's join code." 
                 type="text"
                 onChange={(e) => setJoinCode(e.target.value)}
                 className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
