@@ -2,18 +2,25 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Search, Calendar } from "lucide-react"
 import GameCard from "./GameCard"
+import { getUsername } from "../../App"
 
 const TABS = ["upcoming", "live", "completed", "all"]
 
 const GameList = () => {
   const { leagueName } = useParams()
   const apiUrl = process.env.REACT_APP_API_URL
+  const username = getUsername()
 
   const [games, setGames] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("upcoming")
   const [searchQuery, setSearchQuery] = useState("")
   const [showOnlyNotPicked, setShowOnlyNotPicked] = useState(false)
+
+  // Store user's answers
+  const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({})
+  const [overUnderAnswers, setOverUnderAnswers] = useState({})
+  const [variableOptionAnswers, setVariableOptionAnswers] = useState({})
 
   useEffect(() => {
     async function getGamesFromLeague() {
@@ -47,15 +54,62 @@ const GameList = () => {
     if (leagueName) getGamesFromLeague()
   }, [apiUrl, leagueName])
 
+  // Fetch user's answers
+  useEffect(() => {
+    async function fetchUserAnswers() {
+      if (!apiUrl || !leagueName || !username) return
+
+      try {
+        const [wlRes, ouRes, voRes] = await Promise.all([
+          fetch(
+            `${apiUrl}/retrieve_winner_loser_answers?leagueName=${encodeURIComponent(
+              leagueName
+            )}&username=${encodeURIComponent(username)}`,
+            { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+          ),
+          fetch(
+            `${apiUrl}/retrieve_over_under_answers?leagueName=${encodeURIComponent(
+              leagueName
+            )}&username=${encodeURIComponent(username)}`,
+            { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+          ),
+          fetch(
+            `${apiUrl}/retrieve_variable_option_answers?leagueName=${encodeURIComponent(
+              leagueName
+            )}&username=${encodeURIComponent(username)}`,
+            { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+          ),
+        ])
+
+        if (wlRes.ok) {
+          const wlData = await wlRes.json()
+          setWinnerLoserAnswers(wlData || {})
+        }
+        if (ouRes.ok) {
+          const ouData = await ouRes.json()
+          setOverUnderAnswers(ouData || {})
+        }
+        if (voRes.ok) {
+          const voData = await voRes.json()
+          setVariableOptionAnswers(voData || {})
+        }
+      } catch (err) {
+        console.error("Error fetching user answers:", err)
+      }
+    }
+
+    fetchUserAnswers()
+  }, [apiUrl, leagueName, username])
+
   const now = Date.now()
 
   const normalizedGames = useMemo(() => {
     return (games || []).map((g) => {
       const start = g.start_time ? new Date(g.start_time).getTime() : null
 
-      // ✅ bucket by commissioner grading first
+      // Determine status: completed if ESPN says game ended OR commissioner graded
       let status = "upcoming"
-      if (g.graded) status = "completed"
+      if (g.is_completed || g.graded) status = "completed"
       else if (start && start <= now) status = "live"
 
       return {
@@ -79,7 +133,40 @@ const GameList = () => {
 
   const filterByNotPicked = (game) => {
     if (!showOnlyNotPicked) return true
-    return true
+
+    // Check if user has answered all props for this game
+    const wlProps = game.winner_loser_props || []
+    const ouProps = game.over_under_props || []
+    const voProps = game.variable_option_props || []
+
+    const totalProps = wlProps.length + ouProps.length + voProps.length
+
+    // If no props, consider it as "picked" (nothing to pick)
+    if (totalProps === 0) return false
+
+    // Count answered props - use prop_id not id!
+    let answeredCount = 0
+
+    wlProps.forEach((prop) => {
+      if (winnerLoserAnswers[prop.prop_id] || winnerLoserAnswers[String(prop.prop_id)]) {
+        answeredCount++
+      }
+    })
+
+    ouProps.forEach((prop) => {
+      if (overUnderAnswers[prop.prop_id] || overUnderAnswers[String(prop.prop_id)]) {
+        answeredCount++
+      }
+    })
+
+    voProps.forEach((prop) => {
+      if (variableOptionAnswers[prop.prop_id] || variableOptionAnswers[String(prop.prop_id)]) {
+        answeredCount++
+      }
+    })
+
+    // Show only games where user hasn't answered all props
+    return answeredCount < totalProps
   }
 
   const filteredGames = normalizedGames
@@ -163,7 +250,6 @@ const GameList = () => {
               ></div>
             </button>
             <span className="text-gray-400 text-sm">Show only Not Picked</span>
-            <span className="text-gray-600 text-xs">(placeholder)</span>
           </div>
         </div>
 
@@ -193,11 +279,13 @@ const GameList = () => {
               <div className="inline-flex p-4 rounded-full bg-white/5 border border-white/10 mb-4">
                 <Calendar className="w-10 h-10 text-gray-500" />
               </div>
-              <h2 className="text-2xl text-white mb-3">No Games Available</h2>
+              <h2 className="text-2xl text-white mb-3">No Games Found</h2>
               <p className="text-gray-400 mb-6">
                 {searchQuery
                   ? "No games match your search. Try a different query."
-                  : "The commissioner hasn't created any games yet."}
+                  : showOnlyNotPicked
+                  ? "You've answered all available games."
+                  : "No games available. Check back later."}
               </p>
               <button
                 onClick={() => {

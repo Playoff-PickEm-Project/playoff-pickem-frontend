@@ -108,7 +108,8 @@ const Header = ({ authorized, setAuthorized }) => {
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md bg-zinc-950/80 border-b border-white/5">
       <div className="max-w-screen-2xl mx-auto px-6 py-4">
-        <div className="grid grid-cols-3 items-center gap-6">
+        {/* Desktop layout */}
+        <div className="hidden md:grid md:grid-cols-3 items-center gap-6">
           {/* Left: Logo */}
           <div className="justify-self-start">
             <Link
@@ -122,7 +123,7 @@ const Header = ({ authorized, setAuthorized }) => {
           {/* Center: League nav (only inside league) */}
           <div className="justify-self-center">
             {isInsideLeague && (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Link
                   to={`/league-home/${currentLeagueName}`}
                   className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
@@ -149,24 +150,6 @@ const Header = ({ authorized, setAuthorized }) => {
 
           {/* Right: Actions */}
           <div className="justify-self-end flex items-center gap-3">
-            {/* Mobile compact links */}
-            {isInsideLeague && (
-              <div className="flex md:hidden items-center gap-2">
-                <Link
-                  to={`/league-home/${currentLeagueName}`}
-                  className="text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-full hover:bg-white/5 text-sm"
-                >
-                  Home
-                </Link>
-                <Link
-                  to={`/league-home/${currentLeagueName}/viewGames`}
-                  className="text-gray-300 hover:text-white transition-colors px-3 py-2 rounded-full hover:bg-white/5 text-sm"
-                >
-                  Games
-                </Link>
-              </div>
-            )}
-
             {authorized && (
               <button
                 onClick={handleLogout}
@@ -176,6 +159,55 @@ const Header = ({ authorized, setAuthorized }) => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Mobile layout */}
+        <div className="flex md:hidden flex-col gap-3">
+          {/* Top row: Logo + Logout */}
+          <div className="flex items-center justify-between">
+            <Link
+              to={authorized ? "/dashboard" : "/"}
+              className="text-white text-xl font-semibold hover:opacity-90 transition whitespace-nowrap"
+            >
+              Playoff Pick&apos;ems
+            </Link>
+            {authorized && (
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-400 text-white px-4 py-2 rounded-full transition-all hover:shadow-lg hover:shadow-red-500/30 text-sm"
+              >
+                Logout
+              </button>
+            )}
+          </div>
+
+          {/* Bottom row: Scrollable league nav */}
+          {isInsideLeague && (
+            <div className="overflow-x-auto -mx-6 px-6">
+              <div className="flex items-center gap-2 min-w-max">
+                <Link
+                  to={`/league-home/${currentLeagueName}`}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5 text-sm whitespace-nowrap"
+                >
+                  Home
+                </Link>
+                <Link
+                  to={`/league-home/${currentLeagueName}/viewGames`}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5 text-sm whitespace-nowrap"
+                >
+                  Games
+                </Link>
+                {isCommissioner && (
+                  <Link
+                    to={`/league-home/${currentLeagueName}/league_manager_tools`}
+                    className="text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5 text-sm whitespace-nowrap"
+                  >
+                    LM Tools
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </nav>

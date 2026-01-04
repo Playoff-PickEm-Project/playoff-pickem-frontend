@@ -37,6 +37,12 @@ const UserDash = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [allGames, setAllGames] = useState([]);
+  const [userAnswers, setUserAnswers] = useState({
+    winnerLoser: {},
+    overUnder: {},
+    variableOption: {}
+  });
 
   const username = getUsername();
   const apiUrl = process.env.REACT_APP_API_URL;
@@ -85,6 +91,72 @@ const UserDash = () => {
     };
   }, [apiUrl, username]);
 
+  // Fetch all games across all leagues
+  useEffect(() => {
+    async function fetchAllGamesAndAnswers() {
+      if (!apiUrl || !username || usersLeagues.length === 0) return;
+
+      try {
+        // Fetch games from all leagues
+        const gamesPromises = usersLeagues.map((league) =>
+          fetch(`${apiUrl}/get_games?leagueName=${encodeURIComponent(league.league_name)}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+          }).then((res) => (res.ok ? res.json() : []))
+        );
+
+        // Fetch user answers from all leagues
+        const answersPromises = usersLeagues.map((league) =>
+          Promise.all([
+            fetch(
+              `${apiUrl}/retrieve_winner_loser_answers?leagueName=${encodeURIComponent(
+                league.league_name
+              )}&username=${encodeURIComponent(username)}`,
+              { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+            ).then((res) => (res.ok ? res.json() : {})),
+            fetch(
+              `${apiUrl}/retrieve_over_under_answers?leagueName=${encodeURIComponent(
+                league.league_name
+              )}&username=${encodeURIComponent(username)}`,
+              { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+            ).then((res) => (res.ok ? res.json() : {})),
+            fetch(
+              `${apiUrl}/retrieve_variable_option_answers?leagueName=${encodeURIComponent(
+                league.league_name
+              )}&username=${encodeURIComponent(username)}`,
+              { method: "GET", headers: { "Content-Type": "application/json" }, credentials: "include" }
+            ).then((res) => (res.ok ? res.json() : {})),
+          ])
+        );
+
+        const [gamesResults, answersResults] = await Promise.all([
+          Promise.all(gamesPromises),
+          Promise.all(answersPromises),
+        ]);
+
+        // Flatten all games
+        const allGamesFlat = gamesResults.flat();
+        setAllGames(allGamesFlat);
+
+        // Merge all answers
+        const mergedAnswers = answersResults.reduce(
+          (acc, [wl, ou, vo]) => ({
+            winnerLoser: { ...acc.winnerLoser, ...wl },
+            overUnder: { ...acc.overUnder, ...ou },
+            variableOption: { ...acc.variableOption, ...vo },
+          }),
+          { winnerLoser: {}, overUnder: {}, variableOption: {} }
+        );
+        setUserAnswers(mergedAnswers);
+      } catch (err) {
+        console.error("Error fetching games and answers:", err);
+      }
+    }
+
+    fetchAllGamesAndAnswers();
+  }, [apiUrl, username, usersLeagues]);
+
   const filteredLeagues = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return usersLeagues;
@@ -99,9 +171,79 @@ const UserDash = () => {
   const handleCreateLeague = () => navigate("/league-create");
   const handleJoinLeague = () => navigate("/league-join");
 
-  // Optional placeholders
-  const activePicks = 0;
-  const upcomingLock = "—";
+  // Calculate active picks and upcoming lock time
+  const { activePicks, upcomingLock } = useMemo(() => {
+    if (allGames.length === 0) {
+      return { activePicks: 0, upcomingLock: "—" };
+    }
+
+    const now = Date.now();
+    let totalIncomplete = 0;
+    let nextLockTime = null;
+
+    allGames.forEach((game) => {
+      const startTime = game.start_time ? new Date(game.start_time).getTime() : null;
+
+      // Only count games that haven't started yet
+      if (!startTime || startTime <= now) return;
+
+      // Check if user has answered all props
+      const wlProps = game.winner_loser_props || [];
+      const ouProps = game.over_under_props || [];
+      const voProps = game.variable_option_props || [];
+      const totalProps = wlProps.length + ouProps.length + voProps.length;
+
+      if (totalProps === 0) return;
+
+      let answeredCount = 0;
+
+      wlProps.forEach((prop) => {
+        if (userAnswers.winnerLoser[prop.prop_id] || userAnswers.winnerLoser[String(prop.prop_id)]) {
+          answeredCount++;
+        }
+      });
+
+      ouProps.forEach((prop) => {
+        if (userAnswers.overUnder[prop.prop_id] || userAnswers.overUnder[String(prop.prop_id)]) {
+          answeredCount++;
+        }
+      });
+
+      voProps.forEach((prop) => {
+        if (userAnswers.variableOption[prop.prop_id] || userAnswers.variableOption[String(prop.prop_id)]) {
+          answeredCount++;
+        }
+      });
+
+      // If not fully answered, count as active pick
+      if (answeredCount < totalProps) {
+        totalIncomplete++;
+      }
+
+      // Track earliest lock time
+      if (!nextLockTime || startTime < nextLockTime) {
+        nextLockTime = startTime;
+      }
+    });
+
+    let lockLabel = "—";
+    if (nextLockTime) {
+      try {
+        const d = new Date(nextLockTime);
+        const weekday = d.toLocaleDateString(undefined, { weekday: "short" });
+        const monthDay = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+        lockLabel = `${weekday}, ${monthDay} • ${time}`;
+      } catch {
+        lockLabel = "—";
+      }
+    }
+
+    return {
+      activePicks: totalIncomplete,
+      upcomingLock: lockLabel,
+    };
+  }, [allGames, userAnswers]);
 
   return (
     <div className="min-h-screen bg-zinc-950 relative">
