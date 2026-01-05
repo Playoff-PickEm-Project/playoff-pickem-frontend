@@ -135,6 +135,7 @@ const ViewGameForms = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify(data)
                 });
 
@@ -168,6 +169,7 @@ const ViewGameForms = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'include',
                     body: JSON.stringify(data)
                 });
 

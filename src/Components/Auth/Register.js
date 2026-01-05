@@ -85,6 +85,7 @@ const RegisterPage = () => {
       const response = await fetch(`${apiUrl}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 

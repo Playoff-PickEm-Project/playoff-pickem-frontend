@@ -83,9 +83,10 @@ const EditGameForm = () => {
 
         fetch(endpoint, {
             method: "POST",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "include",
             body: JSON.stringify(propData),
         })
         .then((res) => {
@@ -108,9 +109,10 @@ const EditGameForm = () => {
             try {
                 const response = await fetch(`${apiUrl}/delete_game`, {
                     method: "POST",
-                    headers: { 
+                    headers: {
                         "Content-Type": "application/json"
                     },
+                    credentials: "include",
                     body: JSON.stringify(data),
                 })
 
