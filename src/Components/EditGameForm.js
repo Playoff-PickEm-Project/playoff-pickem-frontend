@@ -249,6 +249,19 @@ const EditGameForm = () => {
         setIsSaving(true);
 
         try {
+            // First, update game metadata (name, start_time, external_game_id)
+            await fetch(`${apiUrl}/update_game`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    game_id: gameId,
+                    game_name: gameName,
+                    start_time: typeof gameStartDate === 'string' ? gameStartDate : gameStartDate.toISOString(),
+                    external_game_id: externalGameId || null,
+                }),
+            });
+
             // Process all props: add new ones, update existing ones
             const promises = [];
 
