@@ -60,9 +60,7 @@ const GamePage = () => {
   // -----------------------------
   const isLocked = useMemo(() => {
     if (!gameStartTime) return false
-    // Lock picks 5 minutes after start time
-    const lockTime = new Date(gameStartTime.getTime() + 5 * 60 * 1000)
-    return new Date() > lockTime
+    return new Date() > gameStartTime
   }, [gameStartTime])
 
   // ✅ FIX: Completed means "graded", NOT ESPN final
