@@ -179,6 +179,7 @@ const GameFormBuilder = () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
           body: JSON.stringify(data)
         })
 
@@ -430,7 +431,9 @@ const GameFormBuilder = () => {
                 if (selectedGameId) {
                   const selectedGame = upcomingGames.find(g => g.id === selectedGameId);
                   if (selectedGame) {
-                    setFormName(selectedGame.name || selectedGame.shortName);
+                    // Replace " at " with " @ " in game name
+                    const gameName = (selectedGame.name || selectedGame.shortName).replace(/ at /gi, ' @ ');
+                    setFormName(gameName);
                     setGameStartDate(new Date(selectedGame.date));
                   }
                   // Fetch players for this game

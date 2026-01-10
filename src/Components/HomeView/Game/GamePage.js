@@ -289,6 +289,7 @@ const GamePage = () => {
     fetch(`${apiUrl}/answer_winner_loser_prop`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     })
       .then((res) => {
@@ -309,6 +310,7 @@ const GamePage = () => {
     fetch(`${apiUrl}/answer_over_under_prop`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     })
       .then((res) => {
@@ -329,6 +331,7 @@ const GamePage = () => {
     fetch(`${apiUrl}/answer_variable_option_prop`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     })
       .then((res) => {
