@@ -884,6 +884,7 @@ const EditGameForm = () => {
                                                                 <option value="receiving_yards">Receiving Yards</option>
                                                                 <option value="receiving_tds">Receiving TDs</option>
                                                                 <option value="receiving_receptions">Receptions</option>
+                                                                <option value="scrimmage_yards">Scrimmage Yards (Rush + Rec)</option>
                                                             </select>
                                                         </div>
 
