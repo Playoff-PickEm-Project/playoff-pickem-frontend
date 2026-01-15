@@ -476,14 +476,17 @@ const GameFormBuilder = () => {
             type="number"
             id="propLimit"
             name="propLimit"
-            min="1"
+            min="0"
             max="20"
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={propLimit}
-            onChange={(e) => setPropLimit(parseInt(e.target.value) || 2)}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              setPropLimit(isNaN(val) ? 0 : val);
+            }}
           />
           <p className="mt-1 text-xs text-gray-500">
-            Players must select and answer this many optional props. Mandatory props are always required.
+            Players must select and answer this many optional props. Mandatory props are always required. Set to 0 if all props are mandatory.
           </p>
         </div>
 
