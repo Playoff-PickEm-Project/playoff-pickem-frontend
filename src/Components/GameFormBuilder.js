@@ -13,6 +13,7 @@ const GameFormBuilder = () => {
   const [playerSearchQuery, setPlayerSearchQuery] = useState({}); // Search query per question
   const [filteredPlayers, setFilteredPlayers] = useState({}); // Filtered players per question
   const [showPlayerDropdown, setShowPlayerDropdown] = useState({}); // Show/hide dropdown per question
+  const [propLimit, setPropLimit] = useState(2); // How many optional props players must select
   const { formId } = useParams();
   const { leagueName } = useParams();
   const navigate = useNavigate();
@@ -132,10 +133,11 @@ const GameFormBuilder = () => {
             favoriteTeam: sortedChoices[0].choice_text,
             underdogTeam: sortedChoices[1].choice_text,
             favoriteTeamId: sortedChoices[0].team_id || null,
-            underdogTeamId: sortedChoices[1].team_id || null
+            underdogTeamId: sortedChoices[1].team_id || null,
+            is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : true
           });
         }
-      
+
         if (item.field_type === 'over_under') {
           const overChoice = item.choices.find(choice => choice.choice_text.toLowerCase() === 'over');
           const underChoice = item.choices.find(choice => choice.choice_text.toLowerCase() === 'under');
@@ -147,7 +149,8 @@ const GameFormBuilder = () => {
             playerName: item.player_name || null,
             playerId: item.player_id || null,
             statType: item.stat_type || null,
-            lineValue: item.line_value || null
+            lineValue: item.line_value || null,
+            is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false
           });
         }
 
@@ -155,6 +158,7 @@ const GameFormBuilder = () => {
           variableOptionQuestions.push({
             question: item.label,
             options: item.choices,
+            is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false
           });
         }
       });
@@ -168,6 +172,7 @@ const GameFormBuilder = () => {
         gameName: formName,
         date: gameStartDate.toISOString(),
         externalGameId: externalGameId || null, // ESPN game ID for polling
+        propLimit: propLimit,
         winnerLoserQuestions: winnerLoserQuestions,
         overUnderQuestions: overUnderQuestions,
         variableOptionQuestions: variableOptionQuestions
@@ -255,6 +260,12 @@ const GameFormBuilder = () => {
   const handleQuestionChange = (e, questionIndex) => {
     const updatedQuestions = [...questions];
     updatedQuestions[questionIndex][e.target.name] = e.target.value;
+
+    // Update is_mandatory default when field_type changes
+    if (e.target.name === 'field_type') {
+      updatedQuestions[questionIndex].is_mandatory = e.target.value === 'select_winner';
+    }
+
     setQuestions(updatedQuestions);
   };
 
@@ -262,6 +273,7 @@ const GameFormBuilder = () => {
     const newQuestion = {
       label: "",
       field_type: "select_winner", // Default type for new question
+      is_mandatory: true, // Winner/Loser defaults to mandatory
       choices: [
         { choice_text: "", points: 0 },
         { choice_text: "", points: 0 },
@@ -456,6 +468,25 @@ const GameFormBuilder = () => {
           </p>
         </div>
 
+        <div className="mb-4">
+          <label htmlFor="propLimit" className="block text-sm font-medium text-gray-700">
+            Number of Optional Props Players Must Answer
+          </label>
+          <input
+            type="number"
+            id="propLimit"
+            name="propLimit"
+            min="1"
+            max="20"
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={propLimit}
+            onChange={(e) => setPropLimit(parseInt(e.target.value) || 2)}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Players must select and answer this many optional props. Mandatory props are always required.
+          </p>
+        </div>
+
         <hr className="my-6 border-gray-300" />
 
         <ul className="space-y-4">
@@ -493,6 +524,23 @@ const GameFormBuilder = () => {
                   {/* <option value="custom_radio">Custom Radio</option> */}
                   <option value="custom_select">Custom Select</option>
                 </select>
+              </div>
+
+              <div className="mb-4 flex items-center">
+                <input
+                  type="checkbox"
+                  id={`mandatory-${questionIndex}`}
+                  checked={question.is_mandatory !== undefined ? question.is_mandatory : (question.field_type === 'select_winner')}
+                  onChange={(e) => {
+                    const updatedQuestions = [...questions];
+                    updatedQuestions[questionIndex].is_mandatory = e.target.checked;
+                    setQuestions(updatedQuestions);
+                  }}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor={`mandatory-${questionIndex}`} className="ml-2 text-sm text-gray-700">
+                  Mandatory prop (all players must answer)
+                </label>
               </div>
 
               {question.field_type === "select_winner" && (

@@ -9,6 +9,7 @@ const EditGameForm = () => {
     const [league, setLeague] = useState({});
     const [gameName, setGameName] = useState("");
     const [gameStartDate, setGameStartDate] = useState(new Date().toISOString());
+    const [propLimit, setPropLimit] = useState(2); // How many optional props players must select
     const [externalGameId, setExternalGameId] = useState("");
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
     const [overUnderProps, setOverUnderProps] = useState([]);
@@ -125,6 +126,7 @@ const EditGameForm = () => {
             .then((data) => {
                 setGameName(data.game_name);
                 setGameStartDate(new Date(data.start_time));
+                setPropLimit(data.prop_limit || 2);
                 setExternalGameId(data.external_game_id || "");
                 setWinnerLoserProps(data.winner_loser_props || []);
                 setOverUnderProps(data.over_under_props || []);
@@ -197,6 +199,7 @@ const EditGameForm = () => {
             underdog_team: teams.length > 1 ? teams[1].name : "Team B",
             favorite_points: 1,
             underdog_points: 1,
+            is_mandatory: true, // Winner/Loser defaults to mandatory
             isNew: true, // Flag to identify new props
         };
         setWinnerLoserProps(prev => [...prev, newProp]);
@@ -214,6 +217,7 @@ const EditGameForm = () => {
             over_points: 1,
             under_points: 1,
             line_value: 0,
+            is_mandatory: false, // Over/Under defaults to optional
             isNew: true,
         };
         setOverUnderProps(prev => [...prev, newProp]);
@@ -232,6 +236,7 @@ const EditGameForm = () => {
                 { answer_choice: "Option A", answer_points: 1 },
                 { answer_choice: "Option B", answer_points: 1 },
             ],
+            is_mandatory: false, // Variable Option defaults to optional
             isNew: true,
         };
         setVariableOptionProps(prev => [...prev, newProp]);
@@ -258,6 +263,7 @@ const EditGameForm = () => {
                     game_id: gameId,
                     game_name: gameName,
                     start_time: typeof gameStartDate === 'string' ? gameStartDate : gameStartDate.toISOString(),
+                    prop_limit: propLimit,
                     external_game_id: externalGameId || null,
                 }),
             });
@@ -506,6 +512,27 @@ const EditGameForm = () => {
                                         }}
                                     />
                                 </div>
+
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">
+                                        Optional Props to Select
+                                        <span className="text-xs text-gray-500 ml-2">(How many optional props must players choose?)</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="20"
+                                        className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-white"
+                                        value={propLimit}
+                                        onChange={(e) => {
+                                            setHasUnsavedChanges(true);
+                                            setPropLimit(parseInt(e.target.value) || 2);
+                                        }}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Players will select {propLimit} props from the optional pool (mandatory props are always required)
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -717,6 +744,27 @@ const EditGameForm = () => {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {/* Mandatory Checkbox */}
+                                                <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`mandatory-${prop.prop_id}`}
+                                                        checked={prop.is_mandatory !== false}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "is_mandatory",
+                                                                e.target.checked,
+                                                                "winnerLoser"
+                                                            )
+                                                        }
+                                                        className="w-4 h-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor={`mandatory-${prop.prop_id}`} className="text-sm text-gray-300 cursor-pointer">
+                                                        Make this prop <span className="font-semibold text-blue-400">mandatory</span> (all players must answer)
+                                                    </label>
+                                                </div>
 
                                                 <div className="flex space-x-2">
                                                     <button
@@ -946,6 +994,28 @@ const EditGameForm = () => {
                                                         />
                                                     </div>
                                                 </div>
+
+                                                {/* Mandatory Checkbox */}
+                                                <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`mandatory-ou-${prop.prop_id}`}
+                                                        checked={prop.is_mandatory === true}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "is_mandatory",
+                                                                e.target.checked,
+                                                                "overUnder"
+                                                            )
+                                                        }
+                                                        className="w-4 h-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor={`mandatory-ou-${prop.prop_id}`} className="text-sm text-gray-300 cursor-pointer">
+                                                        Make this prop <span className="font-semibold text-blue-400">mandatory</span> (all players must answer)
+                                                    </label>
+                                                </div>
+
                                                 <div className="flex space-x-2">
                                                     <button
                                                         onClick={() => handleSaveProp(prop.prop_id, "overUnder")}
@@ -1100,6 +1170,27 @@ const EditGameForm = () => {
                                                     >
                                                         + Add Option
                                                     </button>
+                                                </div>
+
+                                                {/* Mandatory Checkbox */}
+                                                <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`mandatory-vo-${prop.prop_id}`}
+                                                        checked={prop.is_mandatory === true}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "is_mandatory",
+                                                                e.target.checked,
+                                                                "variableOption"
+                                                            )
+                                                        }
+                                                        className="w-4 h-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor={`mandatory-vo-${prop.prop_id}`} className="text-sm text-gray-300 cursor-pointer">
+                                                        Make this prop <span className="font-semibold text-blue-400">mandatory</span> (all players must answer)
+                                                    </label>
                                                 </div>
 
                                                 <div className="flex space-x-2">

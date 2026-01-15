@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import { Link } from "react-router-dom"
-import { Clock, Trophy, Radio, CalendarDays, CheckCircle2 } from "lucide-react"
+import { Clock, Trophy, Radio, CalendarDays, CheckCircle2, ListChecks } from "lucide-react"
 
 const formatDate = (iso) => {
   if (!iso) return "TBD"
@@ -119,8 +119,15 @@ const GameCard = ({ leagueName, game }) => {
         </div>
       </div>
 
-      {/* Mid row: countdown / score */}
+      {/* Mid row: countdown / score / prop selection */}
       <div className="space-y-3">
+        {label === "Upcoming" && (
+          <div className="flex items-center gap-2 text-sm text-gray-300">
+            <ListChecks className="w-4 h-4 text-blue-400" />
+            <span>Answer props + select {game.prop_limit || 2} optional</span>
+          </div>
+        )}
+
         {label === "Upcoming" && countdown && (
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <Clock className="w-4 h-4 text-emerald-400" />
