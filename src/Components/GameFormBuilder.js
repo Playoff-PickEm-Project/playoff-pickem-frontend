@@ -193,12 +193,7 @@ const GameFormBuilder = () => {
           body: JSON.stringify(data)
         })
 
-        console.log("Response status:", response.status);
-        console.log("Response ok:", response.ok);
-
         if (response.ok) {
-          const result = await response.json();
-          console.log("Success response:", result);
           alert("Game created successfully!");
           navigate(`/league-home/${leagueName}/league_manager_tools`);
         }
