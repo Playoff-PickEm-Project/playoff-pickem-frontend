@@ -188,16 +188,24 @@ const GameFormBuilder = () => {
           body: JSON.stringify(data)
         })
 
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+
         if (response.ok) {
-          alert("Game created successfully I think?");
+          const result = await response.json();
+          console.log("Success response:", result);
+          alert("Game created successfully!");
           navigate(`/league-home/${leagueName}/league_manager_tools`);
         }
         else {
-          alert("something went wrong");
+          const errorData = await response.text();
+          console.error("Error response:", response.status, errorData);
+          alert(`Error creating game: ${response.status}`);
         }
       }
       catch (error) {
-        alert("endpoint wasnt reached i think");
+        console.error("Network/CORS error:", error);
+        alert(`Network error: ${error.message}`);
       }
     }
 
