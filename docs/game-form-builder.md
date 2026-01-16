@@ -249,7 +249,7 @@ setQuestions(updatedQuestions);
 
 ### 9. handleCreateGame()
 
-**Location**: Lines 153-242
+**Location**: Lines 88-217
 
 **Purpose**: Submit complete game to backend
 
@@ -302,12 +302,15 @@ Body: gameData
 - Navigates to league manager panel
 - Clears form
 
-**Error Handling** (lines 223-237):
-- Shows error alert with description
+**Error Handling** (lines 204-215):
+- Safari iOS workaround for "Load failed" bug (see [Known Issues](./known-issues.md))
+- Checks if error message contains "load fail"
+- Treats Safari bug as success (backend confirms creation succeeds)
+- Real network errors still properly reported
 - Logs to console
-- Keeps form data (user can fix and retry)
+- Keeps form data for real errors
 
-**CRITICAL**: Includes `credentials: 'include'` (line 202)
+**CRITICAL**: Includes `credentials: 'include'` (line 192)
 
 ---
 
@@ -595,6 +598,20 @@ onChange={(e) => setPropLimit(parseInt(e.target.value) || 2)}
 **Strategy**: Forces choices, tests knowledge depth
 
 **Balance**: Prevents answering all props (removes skill element)
+
+---
+
+## Known Issues
+
+### Safari iOS "Load failed" Error
+
+**Symptom**: On iPhone/iPad, creating a game shows "Network error: Load failed" but game is actually created successfully.
+
+**Impact**: Cosmetic only - game creates on backend, user sees incorrect error
+
+**Workaround**: Implemented in `handleCreateGame()` catch block (lines 204-215)
+
+**Full Details**: See [Known Issues Documentation](./known-issues.md#safari-ios-load-failed-error-on-post-requests)
 
 ---
 
