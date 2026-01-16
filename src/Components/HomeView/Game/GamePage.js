@@ -168,7 +168,7 @@ const GamePage = () => {
         setVariableOptionProps(data.variable_option_props || [])
         setGameStartTime(data.start_time ? new Date(data.start_time) : null)
         setGameName(data.game_name || 'Game Picks')
-        setPropLimit(data.prop_limit || 2)
+        setPropLimit(data.prop_limit ?? 2)
 
         // ✅ IMPORTANT: completed == graded
         setIsGraded(Boolean(data.graded))
