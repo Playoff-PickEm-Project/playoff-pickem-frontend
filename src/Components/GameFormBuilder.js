@@ -178,6 +178,11 @@ const GameFormBuilder = () => {
         variableOptionQuestions: variableOptionQuestions
       }
 
+      console.log("=== SENDING CREATE GAME REQUEST ===");
+      console.log("propLimit value:", propLimit, "(type:", typeof propLimit, ")");
+      console.log("Full data being sent:", JSON.stringify(data, null, 2));
+      console.log("===================================");
+
       try {
         const response = await fetch(`${apiUrl}/create_game`, {
           method: 'POST',
