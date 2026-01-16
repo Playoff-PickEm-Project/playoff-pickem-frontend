@@ -126,7 +126,7 @@ const EditGameForm = () => {
             .then((data) => {
                 setGameName(data.game_name);
                 setGameStartDate(new Date(data.start_time));
-                setPropLimit(data.prop_limit || 2);
+                setPropLimit(data.prop_limit ?? 2);
                 setExternalGameId(data.external_game_id || "");
                 setWinnerLoserProps(data.winner_loser_props || []);
                 setOverUnderProps(data.over_under_props || []);
@@ -526,7 +526,8 @@ const EditGameForm = () => {
                                         value={propLimit}
                                         onChange={(e) => {
                                             setHasUnsavedChanges(true);
-                                            setPropLimit(parseInt(e.target.value) || 2);
+                                            const val = parseInt(e.target.value);
+                                            setPropLimit(isNaN(val) ? 2 : val);
                                         }}
                                     />
                                     <p className="text-xs text-gray-500 mt-1">

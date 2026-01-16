@@ -124,7 +124,7 @@ const GameCard = ({ leagueName, game }) => {
         {label === "Upcoming" && (
           <div className="flex items-center gap-2 text-sm text-gray-300">
             <ListChecks className="w-4 h-4 text-blue-400" />
-            <span>Answer props + select {game.prop_limit || 2} optional</span>
+            <span>Answer props + select {game.prop_limit ?? 2} optional</span>
           </div>
         )}
 
