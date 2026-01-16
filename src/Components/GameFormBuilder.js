@@ -193,19 +193,12 @@ const GameFormBuilder = () => {
           body: JSON.stringify(data)
         })
 
-        try {
-          if (response.ok) {
-            alert("Game created successfully!");
-            navigate(`/league-home/${leagueName}/league_manager_tools`);
-          }
-          else {
-            alert(`Error creating game: ${response.status}`);
-          }
-        } catch (responseError) {
-          // Mobile Safari sometimes throws errors accessing response properties
-          // If we got here, the fetch completed, so assume success
+        if (response.ok) {
           alert("Game created successfully!");
           navigate(`/league-home/${leagueName}/league_manager_tools`);
+        }
+        else {
+          alert(`Error creating game: ${response.status}`);
         }
       }
       catch (error) {
