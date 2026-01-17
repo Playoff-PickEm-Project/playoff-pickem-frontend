@@ -488,7 +488,7 @@ const GamePage = () => {
   // Results blocks: SAME ORDER as form, STRICT matching (prevents row bleed)
   // -----------------------------
   const orderedResultsBlocks = useMemo(() => {
-    if (!isLocked || !Array.isArray(allPlayersAnswers) || allPlayersAnswers.length === 0) return []
+    if (!isLocked) return []
 
     const orderedProps = [
       ...(winnerLoserProps || []).map((p) => ({ kind: 'winner_loser', prop: p })),
@@ -502,7 +502,7 @@ const GamePage = () => {
         const wantType = kind
         const wantQuestion = String(prop.question || '')
 
-        const rowsRaw = allPlayersAnswers.filter((r) => {
+        const rowsRaw = Array.isArray(allPlayersAnswers) ? allPlayersAnswers.filter((r) => {
           const rId = String(r.prop_id)
           const rQ = r.question != null ? String(r.question) : ''
           const rType = normalizePropType(r.prop_type)
@@ -510,9 +510,9 @@ const GamePage = () => {
           if (rType) return rType === wantType && rId === wantId
           if (rQ) return rQ === wantQuestion
           return rId === wantId
-        })
+        }) : []
 
-        if (rowsRaw.length === 0) return null
+        // Show prop even if no one answered it (for live stats visibility)
 
         const seen = new Set()
         const rows = []

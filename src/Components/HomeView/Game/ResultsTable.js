@@ -177,7 +177,7 @@ export default function ResultsTable({
             {orderedResults.length === 0 && (
               <tr>
                 <td className={`${tdAlign} py-6 px-4 text-gray-500`} colSpan={3}>
-                  No results yet.
+                  {showLiveStats ? 'No players selected this prop.' : 'No results yet.'}
                 </td>
               </tr>
             )}

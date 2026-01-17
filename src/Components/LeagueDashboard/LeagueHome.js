@@ -103,14 +103,16 @@ const LeagueHome = () => {
     if (!Array.isArray(standings) || standings.length === 0) return { yourRank: "—", yourPoints: "—" }
 
     const rows = [...standings].map((p) => ({
-      name: p?.name ?? p?.username ?? "",
+      username: p?.username ?? "",  // Use username field (email)
+      name: p?.name ?? p?.username ?? "",  // Display name
       points: Number(p?.points ?? 0),
     }))
 
     rows.sort((a, b) => b.points - a.points)
 
     const me = (username || "").toLowerCase()
-    const idx = rows.findIndex((r) => String(r.name).toLowerCase() === me)
+    // Match against username (email) field
+    const idx = rows.findIndex((r) => String(r.username).toLowerCase() === me)
 
     return {
       yourRank: idx === -1 ? "—" : String(idx + 1),

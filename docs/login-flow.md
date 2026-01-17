@@ -183,26 +183,60 @@ useEffect(() => {
 
 ## Logout Flow
 
-**Endpoint**: `GET /logout`
+**Endpoint**: `POST /logout`
 
-**File**: `app/controllers/authController.py:62-72`
+**File**: `app/controllers/usersController.py:97-108`
 
-**Backend Action** (line 66):
+**Purpose**: Clear server session and log out user
+
+**Backend Action**:
 ```python
-session.pop('user', None)  # Clear session
+@usersController.route('/logout', methods=['POST'])
+def logout():
+    username = session.get('username', 'Unknown')
+    session.clear()  # Clear entire session
+    logging.info(f"User {username} logged out successfully")
+    return jsonify({'message': 'Logged out successfully'}), 200
 ```
 
-**Frontend Trigger** (example from User.js):
+**Frontend Implementation** (Header.js:19-41):
 ```javascript
 const handleLogout = async () => {
-  await fetch(`${apiUrl}/logout`, {
-    credentials: 'include'
-  });
-  navigate('/');
+  try {
+    // Call backend to clear session
+    await fetch(`${apiUrl}/logout`, {
+      method: 'POST',
+      credentials: 'include',  // Send session cookie
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Logout request failed:', error);
+  }
+
+  // Clear localStorage
+  localStorage.setItem("authorized", "false");
+  localStorage.removeItem("username");
+  localStorage.removeItem("auth_provider");
+
+  // Update state
+  setAuthorized(false);
+
+  // Navigate to login
+  navigate("/login", { replace: true });
 };
 ```
 
-**Result**: Session cleared, user redirected to landing page
+**Flow**:
+1. User clicks logout button in Header
+2. Frontend calls `POST /logout` with credentials
+3. Backend clears session using `session.clear()`
+4. Frontend clears localStorage (username, auth_provider, authorized flag)
+5. Frontend updates `authorized` state to `false`
+6. Frontend navigates to `/login` (replace history to prevent back button issues)
+7. LoginPage's session check (`/session-info`) will now return 401
+8. User must log in again to access the app
+
+**Result**: Session fully cleared on both frontend and backend, preventing auto re-login
 
 ---
 

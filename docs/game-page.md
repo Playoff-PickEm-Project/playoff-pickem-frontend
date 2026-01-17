@@ -433,6 +433,108 @@ return selectedProps.some(
 
 ---
 
+## Results Table with Live Stats
+
+**Location**: GamePage.js lines 791-817, ResultsTable.js
+
+**Condition**: Only shown when `isLocked === true` (game has started)
+
+**Purpose**: Display all player answers for all props in a table format, with live statistics showing current game progress
+
+### ResultsTable Component
+
+**File**: `src/Components/HomeView/Game/ResultsTable.js`
+
+**Props**:
+- `question`: The prop question text
+- `results`: Array of player answers `[{playerName, answer, isCorrect}]`
+- `correctAnswer`: The correct answer (if graded)
+- `playerOrder`: Array of player names for consistent ordering
+- `align`: Text alignment ('left' or 'center')
+- **`liveStats`**: Live statistics data for this prop (NEW)
+- **`propType`**: Type of prop ('winner_loser', 'over_under', 'variable_option') (NEW)
+- **`gameStatus`**: Current game status ('upcoming', 'live', 'completed') (NEW)
+
+### Live Stats Display in Results
+
+**Over/Under Props** (ResultsTable.js lines 92-113):
+- Shows current progress value above the results table
+- Displays progress bar (green if over line, yellow if under)
+- Shows line value and current value
+- Formula: `progress = (currentValue / lineValue) * 100`
+- Example: "Current Progress: 5" with progress bar showing 5/28.5
+
+**Winner/Loser Props** (ResultsTable.js lines 115-145):
+- Shows Live/Final badge
+- Displays both team scores in separate boxes
+- Format: Team name on left, score on right
+- Updates every 30 seconds during live games
+
+**Variable Option Props**:
+- No live stats (answer-based, not stat-tracked)
+
+### Data Flow
+
+**GamePage.js** (lines 542-560):
+```javascript
+// Get live stats for this prop
+let liveStatsForProp = null
+if (kind === 'winner_loser') {
+  liveStatsForProp = getWinnerLoserLiveStats(prop.prop_id)
+} else if (kind === 'over_under') {
+  liveStatsForProp = getOverUnderLiveStats(prop.prop_id)
+}
+
+return {
+  key: `${kind}:${prop.prop_id}`,
+  question: prop.question,
+  correctLabel,
+  tableResults,
+  propType: kind,
+  liveStats: liveStatsForProp,  // Passed to ResultsTable
+}
+```
+
+**Helper Functions** (GamePage.js lines 302-310):
+```javascript
+const getOverUnderLiveStats = (propId) => {
+  if (!liveStats?.over_under_props) return null
+  return liveStats.over_under_props.find((p) => String(p.prop_id) === String(propId)) || null
+}
+
+const getWinnerLoserLiveStats = (propId) => {
+  if (!liveStats?.winner_loser_props) return null
+  return liveStats.winner_loser_props.find((p) => String(p.prop_id) === String(propId)) || null
+}
+```
+
+### Display for All Props
+
+**Key Feature**: Results table shows live stats for **ALL props** in the game, not just the ones the current user selected to answer.
+
+**Benefits**:
+- Users can track progress on props they didn't select
+- See how other players' answers are performing
+- Full game visibility even if player only answered a subset of props
+
+### Visibility Logic
+
+**Prop Components** (lines 707-780):
+- Shows props the user selected to answer
+- Displays live stats directly on the prop component
+- User can see their selected answer highlighted
+
+**Results Table** (lines 791-817):
+- Shows ALL props (mandatory + all optional props with answers)
+- Displays live stats above each prop's results table
+- Shows all players' answers in table format
+
+**Dual Display**: Live stats appear in both locations:
+1. **On prop components** - For props user selected to answer
+2. **In results tables** - For all props with player answers
+
+---
+
 ## Status Badge Component
 
 **Location**: Lines 448-461
