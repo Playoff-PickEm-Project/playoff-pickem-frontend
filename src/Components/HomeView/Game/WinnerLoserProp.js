@@ -19,10 +19,12 @@ export function WinnerLoserProp({
         onClick={() => !isLocked && onSelect(team.name)}
         disabled={isLocked}
         className={`w-full p-5 rounded-2xl border-2 transition-all ${
-          isLocked
+          isSelected
+            ? isLocked
+              ? 'bg-emerald-500/10 border-emerald-500/50 cursor-not-allowed opacity-60'
+              : 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+            : isLocked
             ? 'bg-white/5 border-white/5 cursor-not-allowed opacity-60'
-            : isSelected
-            ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
             : 'bg-white/5 border-white/10 hover:border-emerald-500/50 hover:bg-white/10'
         }`}
       >

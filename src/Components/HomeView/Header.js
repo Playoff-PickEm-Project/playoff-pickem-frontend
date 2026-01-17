@@ -17,10 +17,15 @@ const Header = ({ authorized, setAuthorized }) => {
   const inactivityTimeoutRef = useRef(null);
 
   const handleLogout = () => {
-    setAuthorized(false);
+    // Clear localStorage FIRST
     localStorage.setItem("authorized", "false");
     localStorage.removeItem("username");
-    navigate("/");
+
+    // Then update state
+    setAuthorized(false);
+
+    // Navigate to login instead of landing page
+    navigate("/login", { replace: true });
   };
 
   const resetInactivityTimer = () => {

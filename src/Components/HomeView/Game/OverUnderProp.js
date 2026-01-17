@@ -53,10 +53,12 @@ export function OverUnderProp({
           onClick={() => !isLocked && onSelect('over')}
           disabled={isLocked}
           className={`p-5 rounded-2xl border-2 transition-all ${
-            isLocked
+            selectedOption === 'over'
+              ? isLocked
+                ? 'bg-emerald-500/10 border-emerald-500/50 cursor-not-allowed opacity-60'
+                : 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+              : isLocked
               ? 'bg-white/5 border-white/5 cursor-not-allowed opacity-60'
-              : selectedOption === 'over'
-              ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
               : 'bg-white/5 border-white/10 hover:border-emerald-500/50 hover:bg-white/10'
           }`}
         >
@@ -71,10 +73,12 @@ export function OverUnderProp({
           onClick={() => !isLocked && onSelect('under')}
           disabled={isLocked}
           className={`p-5 rounded-2xl border-2 transition-all ${
-            isLocked
+            selectedOption === 'under'
+              ? isLocked
+                ? 'bg-emerald-500/10 border-emerald-500/50 cursor-not-allowed opacity-60'
+                : 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
+              : isLocked
               ? 'bg-white/5 border-white/5 cursor-not-allowed opacity-60'
-              : selectedOption === 'under'
-              ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/30'
               : 'bg-white/5 border-white/10 hover:border-emerald-500/50 hover:bg-white/10'
           }`}
         >
