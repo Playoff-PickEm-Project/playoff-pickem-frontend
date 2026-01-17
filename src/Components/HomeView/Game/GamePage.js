@@ -539,15 +539,25 @@ const GamePage = () => {
           }
         })
 
+        // Get live stats for this prop
+        let liveStatsForProp = null
+        if (kind === 'winner_loser') {
+          liveStatsForProp = getWinnerLoserLiveStats(prop.prop_id)
+        } else if (kind === 'over_under') {
+          liveStatsForProp = getOverUnderLiveStats(prop.prop_id)
+        }
+
         return {
           key: `${kind}:${prop.prop_id}`,
           question: prop.question,
           correctLabel,
           tableResults,
+          propType: kind,
+          liveStats: liveStatsForProp,
         }
       })
       .filter(Boolean)
-  }, [isLocked, allPlayersAnswers, winnerLoserProps, overUnderProps, variableOptionProps])
+  }, [isLocked, allPlayersAnswers, winnerLoserProps, overUnderProps, variableOptionProps, liveStats])
 
   // -----------------------------
   // Helper to check if a prop is selected
@@ -798,6 +808,9 @@ const GamePage = () => {
                 question={block.question}
                 correctAnswer={block.correctLabel}
                 results={block.tableResults}
+                liveStats={block.liveStats}
+                propType={block.propType}
+                gameStatus={gameStatus}
               />
             ))}
           </div>
