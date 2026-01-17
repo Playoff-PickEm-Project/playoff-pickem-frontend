@@ -20,6 +20,7 @@ const Header = ({ authorized, setAuthorized }) => {
     setAuthorized(false);
     localStorage.setItem("authorized", "false");
     localStorage.removeItem("username");
+    navigate("/");
   };
 
   const resetInactivityTimer = () => {

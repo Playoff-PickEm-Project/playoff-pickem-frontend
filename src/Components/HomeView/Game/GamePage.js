@@ -366,13 +366,21 @@ const GamePage = () => {
     })
       .then((res) => {
         if (!res.ok) throw new Error('save failed')
-        setUserChoices((prev) => ({
-          ...prev,
-          [prop_id]: { ...prev[prop_id], choice: answer },
-        }))
+        console.log('Over/Under answer saved successfully:', { prop_id, answer })
+        setUserChoices((prev) => {
+          const updated = {
+            ...prev,
+            [prop_id]: { ...prev[prop_id], choice: answer },
+          }
+          console.log('Updated userChoices:', updated)
+          return updated
+        })
         setOverUnderAnswers((prev) => ({ ...prev, [prop_id]: answer }))
       })
-      .catch(() => alert('Answer was not saved'))
+      .catch((err) => {
+        console.error('Failed to save answer:', err)
+        alert('Answer was not saved')
+      })
   }
 
   const handleVariableOptionProp = (prop_id, answer) => {
@@ -745,6 +753,13 @@ const GamePage = () => {
 
           {filteredOverUnderProps.map((prop) => {
             const ls = getOverUnderLiveStats(prop.prop_id)
+            const selectedChoice = userChoices[prop.prop_id]?.choice
+
+            console.log(`Rendering Over/Under prop ${prop.prop_id}:`, {
+              userChoices: userChoices[prop.prop_id],
+              selectedChoice,
+              fullUserChoices: userChoices
+            })
 
             return (
               <OverUnderProp
@@ -759,7 +774,7 @@ const GamePage = () => {
                 }
                 overPoints={prop.over_points}
                 underPoints={prop.under_points}
-                selectedOption={userChoices[prop.prop_id]?.choice}
+                selectedOption={selectedChoice}
                 onSelect={(opt) => handleOverUnderProp(prop.prop_id, opt)}
                 isLocked={isLocked}
                 gameStatus={gameStatus}

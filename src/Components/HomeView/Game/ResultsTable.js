@@ -20,7 +20,7 @@ export default function ResultsTable({
 
   // For over/under props, calculate progress
   const overUnderProgress = React.useMemo(() => {
-    if (propType !== 'over_under' || !liveStats?.current_value || !liveStats?.line_value) {
+    if (propType !== 'over_under' || liveStats?.current_value === null || liveStats?.current_value === undefined || !liveStats?.line_value) {
       return null;
     }
     const progress = Math.min((liveStats.current_value / liveStats.line_value) * 100, 100);

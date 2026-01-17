@@ -13,7 +13,7 @@ export function OverUnderProp({
   isLocked,
   gameStatus,
 }) {
-  const showLiveStats = (gameStatus === 'live' || gameStatus === 'completed') && currentValue !== undefined
+  const showLiveStats = (gameStatus === 'live' || gameStatus === 'completed') && currentValue !== undefined && currentValue !== null
   const progress = showLiveStats ? Math.min((currentValue / line) * 100, 100) : 0
 
   return (
