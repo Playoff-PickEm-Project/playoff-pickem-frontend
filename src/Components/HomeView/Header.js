@@ -16,15 +16,27 @@ const Header = ({ authorized, setAuthorized }) => {
   // --- inactivity timer (useRef so it doesn't reset weirdly across renders)
   const inactivityTimeoutRef = useRef(null);
 
-  const handleLogout = () => {
-    // Clear localStorage FIRST
+  const handleLogout = async () => {
+    try {
+      // Call backend to clear session
+      await fetch(`${apiUrl}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    }
+
+    // Clear localStorage
     localStorage.setItem("authorized", "false");
     localStorage.removeItem("username");
+    localStorage.removeItem("auth_provider");
 
-    // Then update state
+    // Update state
     setAuthorized(false);
 
-    // Navigate to login instead of landing page
+    // Navigate to login
     navigate("/login", { replace: true });
   };
 
