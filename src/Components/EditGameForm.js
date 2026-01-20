@@ -14,6 +14,7 @@ const EditGameForm = () => {
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
     const [overUnderProps, setOverUnderProps] = useState([]);
     const [variableOptionProps, setVariableOptionProps] = useState([]);
+    const [anytimeTdProps, setAnytimeTdProps] = useState([]);
     const [editingProps, setEditingProps] = useState({});
 
     // ESPN API states
@@ -131,6 +132,7 @@ const EditGameForm = () => {
                 setWinnerLoserProps(data.winner_loser_props || []);
                 setOverUnderProps(data.over_under_props || []);
                 setVariableOptionProps(data.variable_option_props || []);
+                setAnytimeTdProps(data.anytime_td_props || []);
 
                 // Fetch players if external game is set
                 if (data.external_game_id) {
@@ -167,6 +169,12 @@ const EditGameForm = () => {
                     prop.prop_id === propId ? { ...prop, [key]: value } : prop
                 )
             );
+        } else if (type === "anytimeTd") {
+            setAnytimeTdProps((prev) =>
+                prev.map((prop) =>
+                    prop.prop_id === propId ? { ...prop, [key]: value } : prop
+                )
+            );
         }
     };
 
@@ -184,6 +192,8 @@ const EditGameForm = () => {
             setOverUnderProps(prev => prev.filter(p => p.prop_id !== propId));
         } else if (propType === "variable_option") {
             setVariableOptionProps(prev => prev.filter(p => p.prop_id !== propId));
+        } else if (propType === "anytime_td") {
+            setAnytimeTdProps(prev => prev.filter(p => p.prop_id !== propId));
         }
     };
 
@@ -240,6 +250,25 @@ const EditGameForm = () => {
             isNew: true,
         };
         setVariableOptionProps(prev => [...prev, newProp]);
+        // Auto-expand the new prop for editing
+        setEditingProps(prev => ({ ...prev, [newPropId]: true }));
+    };
+
+    const handleAddAnytimeTdProp = () => {
+        setHasUnsavedChanges(true);
+        const newPropId = `temp_td_${Date.now()}`;
+        const newProp = {
+            prop_id: newPropId,
+            game_id: gameId,
+            question: "Which player will score touchdowns?",
+            options: [
+                { player_name: "Player 1", td_line: 0.5, points: 1 },
+                { player_name: "Player 2", td_line: 0.5, points: 1 },
+            ],
+            is_mandatory: false, // Anytime TD defaults to optional
+            isNew: true,
+        };
+        setAnytimeTdProps(prev => [...prev, newProp]);
         // Auto-expand the new prop for editing
         setEditingProps(prev => ({ ...prev, [newPropId]: true }));
     };
@@ -343,6 +372,30 @@ const EditGameForm = () => {
                 }
             }
 
+            // Anytime TD Props
+            for (const prop of anytimeTdProps) {
+                if (prop.isNew) {
+                    const { prop_id, isNew, ...propData } = prop;
+                    promises.push(
+                        fetch(`${apiUrl}/add_anytime_td_prop`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify(propData),
+                        })
+                    );
+                } else {
+                    promises.push(
+                        fetch(`${apiUrl}/update_anytime_td_prop`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify(prop),
+                        })
+                    );
+                }
+            }
+
             // Execute all saves in parallel
             await Promise.all(promises);
 
@@ -355,6 +408,7 @@ const EditGameForm = () => {
             setWinnerLoserProps(gameData.winner_loser_props || []);
             setOverUnderProps(gameData.over_under_props || []);
             setVariableOptionProps(gameData.variable_option_props || []);
+            setAnytimeTdProps(gameData.anytime_td_props || []);
 
             setHasUnsavedChanges(false);
             alert("Game saved successfully!");
@@ -381,6 +435,7 @@ const EditGameForm = () => {
             setWinnerLoserProps(gameData.winner_loser_props || []);
             setOverUnderProps(gameData.over_under_props || []);
             setVariableOptionProps(gameData.variable_option_props || []);
+            setAnytimeTdProps(gameData.anytime_td_props || []);
             setHasUnsavedChanges(false);
         } catch (error) {
             console.error("Error reloading game:", error);
@@ -561,6 +616,13 @@ const EditGameForm = () => {
                                     type="button"
                                 >
                                     + Add Random Prop
+                                </button>
+                                <button
+                                    onClick={handleAddAnytimeTdProp}
+                                    className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition"
+                                    type="button"
+                                >
+                                    + Add Anytime TD Prop
                                 </button>
                             </div>
                         </div>
@@ -1227,6 +1289,196 @@ const EditGameForm = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteProp(prop.prop_id, "variable_option")}
+                                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Anytime TD Props */}
+                        <div className="mb-8">
+                            <h4 className="text-2xl font-semibold text-white mb-4">Anytime TD Props</h4>
+                            {anytimeTdProps.length === 0 ? (
+                                <p className="text-gray-400">No Anytime TD props yet.</p>
+                            ) : (
+                                anytimeTdProps.map((prop) => (
+                                    <div
+                                        key={prop.prop_id}
+                                        className="bg-white/5 border border-white/10 rounded-lg p-6 mb-4"
+                                    >
+                                        {editingProps[prop.prop_id] ? (
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-1">Question</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-white"
+                                                        value={prop.question}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "question",
+                                                                e.target.value,
+                                                                "anytimeTd"
+                                                            )
+                                                        }
+                                                        placeholder="Enter question"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm text-gray-400 mb-2">Player Options (TD Lines)</label>
+                                                    <p className="text-xs text-gray-500 mb-3">
+                                                        TD Line: 0.5 = 1+ TD, 1.5 = 2+ TDs, 2.5 = 3+ TDs
+                                                    </p>
+                                                    {prop.options && prop.options.map((opt, idx) => (
+                                                        <div key={idx} className="flex items-center space-x-2 mb-2">
+                                                            <input
+                                                                type="text"
+                                                                className="flex-1 p-3 bg-white/5 border border-white/10 rounded-lg text-white"
+                                                                value={opt.player_name}
+                                                                onChange={(e) => {
+                                                                    const updatedOptions = [...prop.options];
+                                                                    updatedOptions[idx] = { ...updatedOptions[idx], player_name: e.target.value };
+                                                                    handleInputChange(
+                                                                        prop.prop_id,
+                                                                        "options",
+                                                                        updatedOptions,
+                                                                        "anytimeTd"
+                                                                    );
+                                                                }}
+                                                                placeholder="Player name"
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                className="w-28 p-3 bg-white/5 border border-white/10 rounded-lg text-white"
+                                                                value={opt.td_line}
+                                                                onChange={(e) => {
+                                                                    const updatedOptions = [...prop.options];
+                                                                    updatedOptions[idx] = { ...updatedOptions[idx], td_line: parseFloat(e.target.value) };
+                                                                    handleInputChange(
+                                                                        prop.prop_id,
+                                                                        "options",
+                                                                        updatedOptions,
+                                                                        "anytimeTd"
+                                                                    );
+                                                                }}
+                                                                step={0.5}
+                                                                placeholder="TD Line"
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                className="w-24 p-3 bg-white/5 border border-white/10 rounded-lg text-white"
+                                                                value={opt.points}
+                                                                onChange={(e) => {
+                                                                    const updatedOptions = [...prop.options];
+                                                                    updatedOptions[idx] = { ...updatedOptions[idx], points: parseFloat(e.target.value) };
+                                                                    handleInputChange(
+                                                                        prop.prop_id,
+                                                                        "options",
+                                                                        updatedOptions,
+                                                                        "anytimeTd"
+                                                                    );
+                                                                }}
+                                                                step={0.5}
+                                                                placeholder="Points"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+                                                                onClick={() => {
+                                                                    const updatedOptions = prop.options.filter((_, i) => i !== idx);
+                                                                    handleInputChange(
+                                                                        prop.prop_id,
+                                                                        "options",
+                                                                        updatedOptions,
+                                                                        "anytimeTd"
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg mt-2"
+                                                        onClick={() => {
+                                                            const updatedOptions = [...(prop.options || []), { player_name: "", td_line: 0.5, points: 1 }];
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "options",
+                                                                updatedOptions,
+                                                                "anytimeTd"
+                                                            );
+                                                        }}
+                                                    >
+                                                        + Add Player Option
+                                                    </button>
+                                                </div>
+
+                                                {/* Mandatory Checkbox */}
+                                                <div className="flex items-center gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`mandatory-td-${prop.prop_id}`}
+                                                        checked={prop.is_mandatory === true}
+                                                        onChange={(e) =>
+                                                            handleInputChange(
+                                                                prop.prop_id,
+                                                                "is_mandatory",
+                                                                e.target.checked,
+                                                                "anytimeTd"
+                                                            )
+                                                        }
+                                                        className="w-4 h-4 text-blue-500 rounded focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <label htmlFor={`mandatory-td-${prop.prop_id}`} className="text-sm text-gray-300 cursor-pointer">
+                                                        Make this prop <span className="font-semibold text-blue-400">mandatory</span> (all players must answer)
+                                                    </label>
+                                                </div>
+
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        onClick={() => handleSaveProp(prop.prop_id, "anytimeTd")}
+                                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg"
+                                                    >
+                                                        Done
+                                                    </button>
+                                                    <button
+                                                        onClick={() => toggleEditing(prop.prop_id)}
+                                                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                <h5 className="text-lg font-semibold text-white">{prop.question}</h5>
+                                                <div className="text-gray-300">
+                                                    <p className="text-sm text-gray-400 mb-2">Player Options:</p>
+                                                    {prop.options && prop.options.map((opt, idx) => (
+                                                        <p key={idx}>
+                                                            • {opt.player_name} - {opt.td_line >= 1 ? Math.ceil(opt.td_line) : 1}+ TD{Math.ceil(opt.td_line) > 1 ? 's' : ''} ({opt.points} pts)
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                                <div className="flex space-x-2 pt-2">
+                                                    <button
+                                                        onClick={() => toggleEditing(prop.prop_id)}
+                                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteProp(prop.prop_id, "anytime_td")}
                                                         className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
                                                     >
                                                         Delete

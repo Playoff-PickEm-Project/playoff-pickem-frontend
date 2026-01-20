@@ -101,6 +101,7 @@ const GameFormBuilder = () => {
       const overUnderQuestions = [];
       const winnerLoserQuestions = [];
       const variableOptionQuestions = [];
+      const anytimeTdQuestions = [];
       // Ensure "Over" and "Under" are added to each question when needed
       const updatedQuestions = questions.map(item => {
         // Check if it's an over/under question
@@ -161,11 +162,25 @@ const GameFormBuilder = () => {
             is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false
           });
         }
+
+        if (item.field_type === 'anytime_td') {
+          // Anytime TD prop: each choice has player_name, td_line, and points
+          anytimeTdQuestions.push({
+            question: item.label,
+            options: item.choices.map(choice => ({
+              player_name: choice.choice_text,  // Player name
+              td_line: choice.td_line || 0.5,   // TD threshold (default 0.5 = 1+ TD)
+              points: choice.points             // Points if player hits line
+            })),
+            is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false
+          });
+        }
       });
 
       console.log(overUnderQuestions);
       console.log(winnerLoserQuestions);
       console.log(variableOptionQuestions);
+      console.log(anytimeTdQuestions);
 
       const data = {
         leagueName: leagueName,
@@ -175,7 +190,8 @@ const GameFormBuilder = () => {
         propLimit: propLimit,
         winnerLoserQuestions: winnerLoserQuestions,
         overUnderQuestions: overUnderQuestions,
-        variableOptionQuestions: variableOptionQuestions
+        variableOptionQuestions: variableOptionQuestions,
+        anytimeTdQuestions: anytimeTdQuestions
       }
 
       console.log("=== SENDING CREATE GAME REQUEST ===");
@@ -213,7 +229,7 @@ const GameFormBuilder = () => {
           console.error("Network/CORS error:", error);
           alert(`Network error: ${error.message}`);
         }
-      }
+      } 
     }
 
     createGame();
@@ -259,6 +275,14 @@ const GameFormBuilder = () => {
               choices: [
                 { choice_text: "Option A", points: 1 },
                 { choice_text: "Option B", points: 2 },
+              ],
+            },
+            {
+              label: "Pick a player to score a TD",
+              field_type: "anytime_td",
+              choices: [
+                { choice_text: "Travis Kelce", td_line: 0.5, points: 5 },
+                { choice_text: "Patrick Mahomes", td_line: 1.5, points: 12 },
               ],
             },
           ],
@@ -541,6 +565,7 @@ const GameFormBuilder = () => {
                   <option value="over_under">Over/Under</option>
                   {/* <option value="custom_radio">Custom Radio</option> */}
                   <option value="custom_select">Custom Select</option>
+                  <option value="anytime_td">Anytime TD Scorer</option>
                 </select>
               </div>
 
@@ -713,6 +738,82 @@ const GameFormBuilder = () => {
                     onClick={() => handleAddOption(questionIndex)}
                   >
                     Add Option
+                  </button>
+                </div>
+              )}
+
+              {question.field_type === "anytime_td" && (
+                <div>
+                  <h4 className="font-medium text-gray-700">Player Options</h4>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Each player has their own TD line threshold (0.5 = 1+ TD, 1.5 = 2+ TDs, etc.)
+                  </p>
+
+                  {/* Column Headers */}
+                  <div className="flex items-center space-x-2 mb-2 px-1">
+                    <div className="flex-1">
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Player Name</label>
+                    </div>
+                    <div className="w-28">
+                      <label className="text-xs font-semibold text-gray-600 uppercase">TD Line</label>
+                    </div>
+                    <div className="w-24">
+                      <label className="text-xs font-semibold text-gray-600 uppercase">Points</label>
+                    </div>
+                    <div className="w-20"></div>
+                  </div>
+
+                  <ul className="space-y-2">
+                    {question.choices.map((option, optionIndex) => (
+                      <li key={optionIndex} className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          name="option"
+                          placeholder="Player Name"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-md"
+                          value={option.choice_text}
+                          onChange={(e) => handleOptionChange(e, questionIndex, optionIndex)}
+                        />
+                        <input
+                          type="number"
+                          name="td_line"
+                          placeholder="0.5"
+                          value={option.td_line || 0.5}
+                          onChange={(e) => {
+                            const updatedQuestions = [...questions];
+                            updatedQuestions[questionIndex].choices[optionIndex].td_line = parseFloat(e.target.value);
+                            setQuestions(updatedQuestions);
+                          }}
+                          className="w-28 px-4 py-2 border border-gray-300 rounded-md"
+                          min="0.5"
+                          step="1"
+                        />
+                        <input
+                          type="number"
+                          name="points"
+                          placeholder="Points"
+                          value={option.points}
+                          onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
+                          className="w-24 px-4 py-2 border border-gray-300 rounded-md"
+                          min="0"
+                          step="0.5"
+                        />
+                        <button
+                          type="button"
+                          className="bg-red-500 text-white px-2 py-1 rounded-md text-sm"
+                          onClick={() => handleDeleteOption(questionIndex, optionIndex)}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md mt-3"
+                    onClick={() => handleAddOption(questionIndex)}
+                  >
+                    Add Player Option
                   </button>
                 </div>
               )}
