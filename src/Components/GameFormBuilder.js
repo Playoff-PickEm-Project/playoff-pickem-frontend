@@ -102,6 +102,7 @@ const GameFormBuilder = () => {
       const overUnderQuestions = [];
       const winnerLoserQuestions = [];
       const variableOptionQuestions = [];
+      const anytimeTdQuestions = [];
 
       // Ensure "Over" and "Under" exist for over/under questions
       questions.map((item) => {
@@ -152,6 +153,19 @@ const GameFormBuilder = () => {
             is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false,
           });
         }
+
+        if (item.field_type === 'anytime_td') {
+          // Anytime TD prop: each choice has player_name, td_line, and points
+          anytimeTdQuestions.push({
+            question: item.label,
+            options: item.choices.map(choice => ({
+              player_name: choice.choice_text,  // Player name
+              td_line: choice.td_line || 0.5,   // TD threshold (default 0.5 = 1+ TD)
+              points: choice.points             // Points if player hits line
+            })),
+            is_mandatory: item.is_mandatory !== undefined ? item.is_mandatory : false
+          });
+        }
       });
 
       const data = {
@@ -163,6 +177,7 @@ const GameFormBuilder = () => {
         winnerLoserQuestions,
         overUnderQuestions,
         variableOptionQuestions,
+        anytimeTdQuestions,
       };
 
       console.log("=== SENDING CREATE GAME REQUEST ===");
@@ -514,6 +529,9 @@ const GameFormBuilder = () => {
                     <option value="custom_select" className="bg-zinc-900">
                       Custom Select
                     </option>
+                    <option value="anytime_td" className="bg-zinc-900">
+                      Anytime TD Scorer
+                    </option>
                   </select>
                 </div>
 
@@ -666,6 +684,85 @@ const GameFormBuilder = () => {
                     >
                       <Plus className="w-4 h-4" />
                       Add Option
+                    </button>
+                  </div>
+                )}
+
+                {/* ANYTIME TD */}
+                {question.field_type === "anytime_td" && (
+                  <div className="space-y-3">
+                    <h4 className="text-white font-medium">Player Options</h4>
+                    <p className="text-sm text-gray-400 mb-3">
+                      Each player has their own TD line threshold (0.5 = 1+ TD, 1.5 = 2+ TDs, etc.)
+                    </p>
+
+                    {/* Column Headers */}
+                    <div className="flex items-center gap-3 mb-2 px-1">
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-gray-400 uppercase">Player Name</label>
+                      </div>
+                      <div className="w-32">
+                        <label className="text-xs font-semibold text-gray-400 uppercase">TD Line</label>
+                      </div>
+                      <div className="w-28">
+                        <label className="text-xs font-semibold text-gray-400 uppercase">Points</label>
+                      </div>
+                      <div className="w-24"></div>
+                    </div>
+
+                    <ul className="space-y-2">
+                      {question.choices.map((option, optionIndex) => (
+                        <li key={optionIndex} className="flex items-center gap-3">
+                          <input
+                            type="text"
+                            name="option"
+                            placeholder="Player Name"
+                            className="flex-1 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            value={option.choice_text}
+                            onChange={(e) => handleOptionChange(e, questionIndex, optionIndex)}
+                          />
+                          <input
+                            type="number"
+                            name="td_line"
+                            placeholder="0.5"
+                            value={option.td_line || 0.5}
+                            onChange={(e) => {
+                              const updatedQuestions = [...questions];
+                              updatedQuestions[questionIndex].choices[optionIndex].td_line = parseFloat(e.target.value);
+                              setQuestions(updatedQuestions);
+                            }}
+                            className="w-32 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            min="0.5"
+                            step="1"
+                          />
+                          <input
+                            type="number"
+                            name="points"
+                            placeholder="Pts"
+                            value={option.points}
+                            onChange={(e) => handleOptionPointsChange(e, questionIndex, optionIndex)}
+                            className="w-28 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            min="0"
+                            step="0.5"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOption(questionIndex, optionIndex)}
+                            className="px-4 py-3 rounded-xl bg-red-500/10 hover:bg-red-500 border border-red-500/30 text-red-300 hover:text-white transition-all"
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      type="button"
+                      onClick={() => handleAddOption(questionIndex)}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Player Option
                     </button>
                   </div>
                 )}

@@ -7,6 +7,7 @@ import { GameStatusBar } from './GameStatusBar'
 import { WinnerLoserProp } from './WinnerLoserProp'
 import { OverUnderProp } from './OverUnderProp'
 import { VariableOptionProp } from './VariableOptionProp'
+import { AnytimeTdProp } from './AnytimeTdProp'
 import { CommissionerTools } from './CommissionerTools'
 import { PropSelectionModal } from './PropSelectionModal'
 import ResultsTable from './ResultsTable'
@@ -17,6 +18,7 @@ const normalizePropType = (t) => {
   if (s.includes('winner') || s.includes('loser')) return 'winner_loser'
   if (s.includes('over') || s.includes('under')) return 'over_under'
   if (s.includes('variable') || s.includes('option')) return 'variable_option'
+  if (s.includes('anytime') || s.includes('td')) return 'anytime_td'
   return null
 }
 
@@ -30,11 +32,13 @@ const GamePage = () => {
   const [overUnderProps, setOverUnderProps] = useState([])
   const [winnerLoserProps, setWinnerLoserProps] = useState([])
   const [variableOptionProps, setVariableOptionProps] = useState([])
+  const [anytimeTdProps, setAnytimeTdProps] = useState([])
 
   // Answers (from backend)
   const [winnerLoserAnswers, setWinnerLoserAnswers] = useState({})
   const [overUnderAnswers, setOverUnderAnswers] = useState({})
   const [variableOptionAnswers, setVariableOptionAnswers] = useState({})
+  const [anytimeTdAnswers, setAnytimeTdAnswers] = useState({})
 
   // Derived UI picks map
   const [userChoices, setUserChoices] = useState({})
@@ -166,6 +170,7 @@ const GamePage = () => {
         setOverUnderProps(data.over_under_props || [])
         setWinnerLoserProps(data.winner_loser_props || [])
         setVariableOptionProps(data.variable_option_props || [])
+        setAnytimeTdProps(data.anytime_td_props || [])
         setGameStartTime(data.start_time ? new Date(data.start_time) : null)
         setGameName(data.game_name || 'Game Picks')
         setPropLimit(data.prop_limit ?? 2)
@@ -238,6 +243,25 @@ const GamePage = () => {
     if (apiUrl && leagueName && username) loadVO()
   }, [apiUrl, leagueName, username])
 
+  // Fetch anytime TD answers
+  useEffect(() => {
+    const loadAnytimeTd = async () => {
+      try {
+        const res = await fetch(
+          `${apiUrl}/retrieve_anytime_td_answers?leagueName=${encodeURIComponent(
+            leagueName
+          )}&username=${encodeURIComponent(username)}`,
+          { method: 'GET', headers: { 'Content-Type': 'application/json' } }
+        )
+        const data = await res.json()
+        setAnytimeTdAnswers(data || {})
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    if (apiUrl && leagueName && username) loadAnytimeTd()
+  }, [apiUrl, leagueName, username])
+
   // -----------------------------
   // Fetch player's selected props
   // -----------------------------
@@ -270,9 +294,12 @@ const GamePage = () => {
     for (const [propId, option] of Object.entries(variableOptionAnswers || {})) {
       updated[propId] = { ...updated[propId], option }
     }
+    for (const [propId, player] of Object.entries(anytimeTdAnswers || {})) {
+      updated[propId] = { ...updated[propId], player }
+    }
 
     setUserChoices(updated)
-  }, [winnerLoserAnswers, overUnderAnswers, variableOptionAnswers])
+  }, [winnerLoserAnswers, overUnderAnswers, variableOptionAnswers, anytimeTdAnswers])
 
   // -----------------------------
   // Live stats polling (still used for scores/progress)
@@ -400,6 +427,27 @@ const GamePage = () => {
           [prop_id]: { ...prev[prop_id], option: answer },
         }))
         setVariableOptionAnswers((prev) => ({ ...prev, [prop_id]: answer }))
+      })
+      .catch(() => alert('Answer was not saved'))
+  }
+
+  const handleAnytimeTdProp = (prop_id, answer) => {
+    if (isLocked) return
+    const payload = { leagueName, username, prop_id, answer }
+
+    fetch(`${apiUrl}/answer_anytime_td_prop`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('save failed')
+        setUserChoices((prev) => ({
+          ...prev,
+          [prop_id]: { ...prev[prop_id], player: answer },
+        }))
+        setAnytimeTdAnswers((prev) => ({ ...prev, [prop_id]: answer }))
       })
       .catch(() => alert('Answer was not saved'))
   }
@@ -580,16 +628,18 @@ const GamePage = () => {
   const mandatoryWinnerLoserProps = winnerLoserProps.filter((p) => p.is_mandatory);
   const mandatoryOverUnderProps = overUnderProps.filter((p) => p.is_mandatory);
   const mandatoryVariableOptionProps = variableOptionProps.filter((p) => p.is_mandatory);
+  const mandatoryAnytimeTdProps = anytimeTdProps.filter((p) => p.is_mandatory);
 
   const optionalWinnerLoserProps = winnerLoserProps.filter((p) => !p.is_mandatory);
   const optionalOverUnderProps = overUnderProps.filter((p) => !p.is_mandatory);
   const optionalVariableOptionProps = variableOptionProps.filter((p) => !p.is_mandatory);
+  const optionalAnytimeTdProps = anytimeTdProps.filter((p) => !p.is_mandatory);
 
-  const mandatoryCount = mandatoryWinnerLoserProps.length + mandatoryOverUnderProps.length + mandatoryVariableOptionProps.length;
+  const mandatoryCount = mandatoryWinnerLoserProps.length + mandatoryOverUnderProps.length + mandatoryVariableOptionProps.length + mandatoryAnytimeTdProps.length;
 
   // Count only optional selections
   const optionalSelectionCount = selectedPropIds.filter(sel => {
-    const prop = [...optionalWinnerLoserProps, ...optionalOverUnderProps, ...optionalVariableOptionProps].find(
+    const prop = [...optionalWinnerLoserProps, ...optionalOverUnderProps, ...optionalVariableOptionProps, ...optionalAnytimeTdProps].find(
       p => p.prop_id === sel.prop_id
     );
     return !!prop;
@@ -616,6 +666,13 @@ const GamePage = () => {
     ...mandatoryVariableOptionProps,
     ...(hasCompletedSelection
       ? optionalVariableOptionProps.filter((p) => isPropSelected('variable_option', p.prop_id))
+      : [])
+  ];
+
+  const filteredAnytimeTdProps = [
+    ...mandatoryAnytimeTdProps,
+    ...(hasCompletedSelection
+      ? optionalAnytimeTdProps.filter((p) => isPropSelected('anytime_td', p.prop_id))
       : [])
   ];
 
@@ -800,6 +857,20 @@ const GamePage = () => {
               />
             )
           })}
+
+          {filteredAnytimeTdProps.map((prop) => {
+            return (
+              <AnytimeTdProp
+                key={prop.prop_id}
+                question={prop.question}
+                options={prop.options || []}
+                selectedOption={userChoices[prop.prop_id]?.player}
+                onSelect={(playerName) => handleAnytimeTdProp(prop.prop_id, playerName)}
+                isLocked={isLocked}
+                gameStatus={gameStatus}
+              />
+            )
+          })}
         </div>
 
         {isCommissioner && (
@@ -840,6 +911,7 @@ const GamePage = () => {
           winner_loser: winnerLoserProps,
           over_under: overUnderProps,
           variable_option: variableOptionProps,
+          anytime_td: anytimeTdProps,
         }}
         selectedPropIds={selectedPropIds}
         onSelectProp={handleSelectProp}

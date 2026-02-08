@@ -8,6 +8,7 @@ const GradeGameForm = () => {
     const [overUnderProps, setOverUnderProps] = useState([]);
     const [winnerLoserProps, setWinnerLoserProps] = useState([]);
     const [variableOptionProps, setVariableOptionProps] = useState([]);
+    const [anytimeTdProps, setAnytimeTdProps] = useState([]);
     const [userChoices, setUserChoices] = useState({});
     const [isCommissioner, setIsCommissioner] = useState(false);
     const [correctAnswers, setCorrectAnswers] = useState([]);
@@ -213,6 +214,50 @@ const GradeGameForm = () => {
                     alert('Failed to save answer for prop_id: ' + prop.prop_id);
                 }
             }
+
+            // Loop through each anytimeTdProp (multiple correct answers possible)
+            for (const prop of anytimeTdProps) {
+                let selectedAnswersForProp = [];
+
+                // Check if user has any choices for this prop
+                const userChoice = userChoices[prop.prop_id];
+
+                // If user has choices, collect selected player names
+                if (userChoice && userChoice.choices) {
+                    selectedAnswersForProp = [...userChoice.choices];
+                }
+
+                console.log("Selected anytime TD answers for prop_id", prop.prop_id, ":", selectedAnswersForProp);
+
+                // Set the correct player(s) for the prop
+                const data = {
+                    leagueName: leagueName,
+                    prop_id: prop.prop_id,
+                    answers: selectedAnswersForProp, // Array of player names who scored TDs
+                };
+
+                try {
+                    // Send the data to your API for this prop_id
+                    const response = await fetch(`${apiUrl}/set_correct_anytime_td_prop`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                        alert("Something went wrong while saving anytime TD answer for prop_id: " + prop.prop_id);
+                    }
+
+                    const result = await response.json();
+                    console.log(result);
+                } catch (error) {
+                    console.error('Error saving anytime TD answer for prop_id:', prop.prop_id, error);
+                    alert('Failed to save anytime TD answer for prop_id: ' + prop.prop_id);
+                }
+            }
         }
 
         async function gradeAnswers() {
@@ -263,6 +308,7 @@ const GradeGameForm = () => {
             setOverUnderProps(data.over_under_props);
             setWinnerLoserProps(data.winner_loser_props);
             setVariableOptionProps(data.variable_option_props);
+            setAnytimeTdProps(data.anytime_td_props || []);
         }).catch((error) => {
             console.error(error); // Log the error
             alert("Something went wrong");
@@ -495,6 +541,51 @@ const GradeGameForm = () => {
                                             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                                         />
                                         <span>{option.answer_choice} ({option.answer_points})</span>
+                                        <br />
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+
+            {/* Render Anytime TD Props */}
+            {anytimeTdProps && anytimeTdProps.map((prop) => {
+                const correctAnswersForProp = Array.isArray(correctAnswers[prop.prop_id])
+                    ? correctAnswers[prop.prop_id]
+                    : [correctAnswers[prop.prop_id]];
+
+                const handleCheckboxChange = (e, option) => {
+                    const isChecked = e.target.checked;
+                    handleMultipleChoiceChange(
+                        prop.prop_id,
+                        option.player_name,
+                        isChecked
+                    );
+                };
+
+                return (
+                    <div key={prop.prop_id} style={{ marginBottom: '16px' }}>
+                        <h4 style={{ fontSize: '18px' }} className="font-bold">{prop.question}</h4>
+                        <p className="text-sm text-gray-400 mb-2">Select all players who hit their TD line:</p>
+                        <div>
+                            {prop.options && prop.options.map((option) => {
+                                const isChecked = userChoices[prop.prop_id]?.choices?.includes(option.player_name) || false;
+
+                                return (
+                                    <label key={option.player_name}>
+                                        <input
+                                            type="checkbox"
+                                            name={`anytime_td_${prop.prop_id}`}
+                                            value={option.player_name}
+                                            onChange={(e) => handleCheckboxChange(e, option)}
+                                            checked={isChecked}
+                                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                                        />
+                                        <span>
+                                            {option.player_name} - {option.td_line >= 1 ? Math.ceil(option.td_line) : 1}+ TD{Math.ceil(option.td_line) > 1 ? 's' : ''} ({option.points} pts)
+                                        </span>
                                         <br />
                                     </label>
                                 );
