@@ -774,74 +774,76 @@ const GameFormBuilder = () => {
 
                     {externalGameId && availablePlayers.length > 0 ? (
                       <div className="space-y-4">
-                        {/* Player search */}
-                        <div className="relative">
-                          <label className="block text-gray-300 mb-2">Select Player</label>
-                          <input
-                            type="text"
-                            className="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                            placeholder="Search for a player..."
-                            value={playerSearchQuery[questionIndex] || question.player_name || ""}
-                            onChange={(e) => {
-                              const searchValue = e.target.value;
-                              setPlayerSearchQuery({ ...playerSearchQuery, [questionIndex]: searchValue });
-                              setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: true });
+                        {/* Player search - only show for player-specific stats */}
+                        {question.stat_type !== "total_points" && (
+                          <div className="relative">
+                            <label className="block text-gray-300 mb-2">Select Player</label>
+                            <input
+                              type="text"
+                              className="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                              placeholder="Search for a player..."
+                              value={playerSearchQuery[questionIndex] || question.player_name || ""}
+                              onChange={(e) => {
+                                const searchValue = e.target.value;
+                                setPlayerSearchQuery({ ...playerSearchQuery, [questionIndex]: searchValue });
+                                setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: true });
 
-                              if (searchValue.trim() === "") {
-                                setFilteredPlayers({ ...filteredPlayers, [questionIndex]: availablePlayers });
-                              } else {
-                                const fuse = new Fuse(availablePlayers, {
-                                  keys: ["name", "position"],
-                                  threshold: 0.3,
-                                });
-                                const results = fuse.search(searchValue);
-                                setFilteredPlayers({
-                                  ...filteredPlayers,
-                                  [questionIndex]: results.map((r) => r.item),
-                                });
-                              }
-                            }}
-                            onFocus={() => {
-                              setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: true });
-                              if (!filteredPlayers[questionIndex]) {
-                                setFilteredPlayers({ ...filteredPlayers, [questionIndex]: availablePlayers });
-                              }
-                            }}
-                            onBlur={() => {
-                              setTimeout(() => {
-                                setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: false });
-                              }, 200);
-                            }}
-                          />
+                                if (searchValue.trim() === "") {
+                                  setFilteredPlayers({ ...filteredPlayers, [questionIndex]: availablePlayers });
+                                } else {
+                                  const fuse = new Fuse(availablePlayers, {
+                                    keys: ["name", "position"],
+                                    threshold: 0.3,
+                                  });
+                                  const results = fuse.search(searchValue);
+                                  setFilteredPlayers({
+                                    ...filteredPlayers,
+                                    [questionIndex]: results.map((r) => r.item),
+                                  });
+                                }
+                              }}
+                              onFocus={() => {
+                                setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: true });
+                                if (!filteredPlayers[questionIndex]) {
+                                  setFilteredPlayers({ ...filteredPlayers, [questionIndex]: availablePlayers });
+                                }
+                              }}
+                              onBlur={() => {
+                                setTimeout(() => {
+                                  setShowPlayerDropdown({ ...showPlayerDropdown, [questionIndex]: false });
+                                }, 200);
+                              }}
+                            />
 
-                          {showPlayerDropdown[questionIndex] &&
-                            (filteredPlayers[questionIndex] || availablePlayers).length > 0 && (
-                              <div className="absolute z-10 w-full mt-2 rounded-xl bg-zinc-900/95 border border-white/10 shadow-2xl max-h-60 overflow-y-auto">
-                                {(filteredPlayers[questionIndex] || availablePlayers).map((player) => (
-                                  <div
-                                    key={player.id}
-                                    className="px-4 py-3 cursor-pointer text-white hover:bg-white/10 transition-all"
-                                    onClick={() => {
-                                      const updatedQuestions = [...questions];
-                                      updatedQuestions[questionIndex].player_name = player.name;
-                                      updatedQuestions[questionIndex].player_id = player.id;
-                                      setQuestions(updatedQuestions);
-                                      setPlayerSearchQuery({
-                                        ...playerSearchQuery,
-                                        [questionIndex]: player.name,
-                                      });
-                                      setShowPlayerDropdown({
-                                        ...showPlayerDropdown,
-                                        [questionIndex]: false,
-                                      });
-                                    }}
-                                  >
-                                    {player.name} <span className="text-gray-400">({player.position})</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                        </div>
+                            {showPlayerDropdown[questionIndex] &&
+                              (filteredPlayers[questionIndex] || availablePlayers).length > 0 && (
+                                <div className="absolute z-10 w-full mt-2 rounded-xl bg-zinc-900/95 border border-white/10 shadow-2xl max-h-60 overflow-y-auto">
+                                  {(filteredPlayers[questionIndex] || availablePlayers).map((player) => (
+                                    <div
+                                      key={player.id}
+                                      className="px-4 py-3 cursor-pointer text-white hover:bg-white/10 transition-all"
+                                      onClick={() => {
+                                        const updatedQuestions = [...questions];
+                                        updatedQuestions[questionIndex].player_name = player.name;
+                                        updatedQuestions[questionIndex].player_id = player.id;
+                                        setQuestions(updatedQuestions);
+                                        setPlayerSearchQuery({
+                                          ...playerSearchQuery,
+                                          [questionIndex]: player.name,
+                                        });
+                                        setShowPlayerDropdown({
+                                          ...showPlayerDropdown,
+                                          [questionIndex]: false,
+                                        });
+                                      }}
+                                    >
+                                      {player.name} <span className="text-gray-400">({player.position})</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                          </div>
+                        )}
 
                         {/* Stat type */}
                         <div>
@@ -858,6 +860,7 @@ const GameFormBuilder = () => {
                             <option value="" className="bg-zinc-900">
                               -- Select stat type --
                             </option>
+                            <option value="total_points" className="bg-zinc-900">Total Points (Both Teams)</option>
                             <option value="passing_yards" className="bg-zinc-900">Passing Yards</option>
                             <option value="passing_tds" className="bg-zinc-900">Passing TDs</option>
                             <option value="passing_interceptions" className="bg-zinc-900">Passing Interceptions</option>
@@ -877,7 +880,7 @@ const GameFormBuilder = () => {
                           <input
                             type="number"
                             step="0.5"
-                            placeholder="e.g., 250.5"
+                            placeholder={question.stat_type === "total_points" ? "e.g., 45.5" : "e.g., 250.5"}
                             className="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                             value={question.line_value || ""}
                             onChange={(e) => {
