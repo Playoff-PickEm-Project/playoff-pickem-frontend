@@ -732,8 +732,8 @@ const GameFormBuilder = () => {
                               setQuestions(updatedQuestions);
                             }}
                             className="w-32 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-                            min="0.5"
-                            step="1"
+                            min="0"
+                            step="0.5"
                           />
                           <input
                             type="number"
